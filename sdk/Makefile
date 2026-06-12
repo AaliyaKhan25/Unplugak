@@ -1,4 +1,4 @@
-.PHONY: install lint format fix check check-ci test test-security test-ml smoke-ml docker-e2e audit audit-ml scenarios examples
+.PHONY: install lint format fix check check-ci test test-cov test-security test-ml smoke-ml docker-e2e audit audit-ml scenarios attack-gate examples
 
 install:
 	uv sync --all-extras --dev
@@ -35,6 +35,10 @@ check-ci: check
 		tests/test_scenario_replay.py \
 		-q
 	$(MAKE) scenarios
+	$(MAKE) attack-gate
+
+attack-gate:
+	uv run python -m benchmarks.attacks.ci_gate
 
 test-ml:
 	uv run pytest tests/test_ml_validation.py tests/test_ml_integration.py tests/test_guard_ml.py tests/test_head_tail.py tests/test_span_ml.py tests/test_dual_head_ml.py -v
@@ -60,6 +64,11 @@ docker-e2e:
 
 test:
 	uv run pytest -v
+
+# Coverage artifacts for CI PR comment (coverage.xml + pytest.xml).
+# Timing-sensitive stress tests run in check-ci; skip them here to avoid flaky reruns.
+test-cov:
+	uv run pytest -q -m "not requires_docker and not slow" --cov=unplug --cov-report=xml:coverage.xml --cov-report=term --junitxml=pytest.xml
 
 test-security:
 	uv run pytest \

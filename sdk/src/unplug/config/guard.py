@@ -18,7 +18,7 @@ from unplug.config.agent_policy import (
 from unplug.config.cache import CacheConfig
 from unplug.config.limits import LimitConfig
 from unplug.config.messages import MessageConfig
-from unplug.config.policy import ScanPolicy
+from unplug.config.policy import MlGateConfig, ScanPolicy
 from unplug.config.tools import ToolPolicyConfig
 
 
@@ -52,13 +52,17 @@ class PipelineConfig(BaseModel):
     policy: ScanPolicy = Field(default_factory=ScanPolicy)
     fail_closed: bool = True
     judge_timeout: float = 30.0
+    ml_gate: MlGateConfig = Field(
+        default_factory=MlGateConfig,
+        description="Hybrid regex-to-ML routing for the injection_ml second pass",
+    )
 
 
 class GuardConfig(BaseModel):
     """Top-level configuration for the Guard."""
 
     scanners: list[str] = Field(
-        default_factory=lambda: ["injection", "destructive", "leakage", "harmful"]
+        default_factory=lambda: ["injection", "destructive", "leakage", "harmful", "urls"]
     )
     mode: str = "local"
     server_url: str | None = None
