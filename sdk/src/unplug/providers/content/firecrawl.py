@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from unplug.optional.scrape import get_firecrawl_app_class
 from unplug.providers.content.env import load_firecrawl_api_key
 from unplug.providers.content.protocol import CleanResult, ScrapedContent
 
@@ -38,12 +39,8 @@ class FirecrawlProvider:
     def _ensure_client(self) -> Any:
         if self._client is not None:
             return self._client
-        try:
-            from firecrawl import FirecrawlApp
-        except ImportError as exc:
-            msg = "Install scrape extra: uv sync --extra scrape"
-            raise ImportError(msg) from exc
-        self._client = FirecrawlApp(api_key=self._api_key)
+        firecrawl_app = get_firecrawl_app_class()
+        self._client = firecrawl_app(api_key=self._api_key)
         return self._client
 
     def scrape_sync(self, url: str) -> ScrapedContent:

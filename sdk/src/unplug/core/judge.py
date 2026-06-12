@@ -7,7 +7,7 @@ from typing import Any, Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field
 
-from unplug.core.logging import get_logger
+from unplug.core.runtime.logging import get_logger
 from unplug.models import Action, Finding
 
 _log = get_logger("judge")

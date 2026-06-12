@@ -2,6 +2,8 @@
 
 [guard]
 scanners = ["injection", "destructive", "leakage", "harmful", "urls"]
+# Add "pii" for Microsoft Presidio NER (pip install "unplug-ai[presidio]")
+# scanners = ["injection", "destructive", "leakage", "harmful", "urls", "pii"]
 # mode: "local" (default) | "server" (hosted API)
 mode = "local"
 fail_closed = true
@@ -75,6 +77,9 @@ normalize = true
 
 [scanners.destructive]
 base_score = 0.90
+
+# [scanners.pii]
+# base_score = 0.80
 
 # --- Hosted mode (server) ---
 # Set mode = "server" and credentials (or env UNPLUG_SERVER_URL + UNPLUG_API_KEY).

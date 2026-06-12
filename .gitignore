@@ -213,8 +213,14 @@ cython_debug/
 tempCodeRunnerFile.py
 
 # Internal context (strategy, competitive, model plans)
-.context/
-datasets/
+# Anchored to repo root so they never swallow package dirs
+# (e.g. sdk/src/unplug/core/context/).
+/.context/
+/context/
+/CLAUDE.md
+/.cursorrules
+/scripts/merge-v2-to-main.sh
+/datasets/
 .uv-cache/
 
 # Editor configs (per-developer)

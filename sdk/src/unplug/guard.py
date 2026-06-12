@@ -11,33 +11,33 @@ from unplug.api.types import Finding, ScanRequest, ScanResult
 from unplug.client import UnplugClient
 from unplug.config.guard import GuardConfig
 from unplug.config.policy import ScanPolicy
-from unplug.core.approval import ApprovalProvider, NullApprovalProvider
-from unplug.core.boundaries import maybe_wrap_untrusted
-from unplug.core.cache import SafePrefixState, ScanCache, merge_suffix_result
-from unplug.core.canary import CanaryRegistry
+from unplug.core.agent.approval import ApprovalProvider, NullApprovalProvider
+from unplug.core.agent.boundaries import maybe_wrap_untrusted
+from unplug.core.agent.canary import CanaryRegistry
 from unplug.core.context import ExecutionContext, ToolCall
-from unplug.core.encodings import EncodingClassifier, default_encoding_classifier
 from unplug.core.judge import JudgeProvider
 from unplug.core.limits import LimitConfig, LimitViolation
-from unplug.core.logging import correlation_scope, get_logger
-from unplug.core.model_runtime import (
+from unplug.core.normalize import Normalizer
+from unplug.core.normalize.encodings import EncodingClassifier, default_encoding_classifier
+from unplug.core.policy import policy_from_request
+from unplug.core.privacy import NullPrivacyFilter, PrivacyFilterService
+from unplug.core.privacy.secrets import SecretsRegistry, SecretsSanitizer
+from unplug.core.runtime.cache import SafePrefixState, ScanCache, merge_suffix_result
+from unplug.core.runtime.logging import correlation_scope, get_logger
+from unplug.core.runtime.model_runtime import (
     load_active_model_provider,
     merge_catalog_models,
     model_cache_version,
     prepare_active_model_spec,
 )
-from unplug.core.normalize import Normalizer
-from unplug.core.policy import policy_from_request
-from unplug.core.privacy import NullPrivacyFilter, PrivacyFilterService
-from unplug.core.secrets import SecretsRegistry, SecretsSanitizer
-from unplug.core.stats import MetricsCollector
+from unplug.core.runtime.stats import MetricsCollector
+from unplug.core.runtime.versions import MODEL_VERSION_LOCAL, NORMALIZER_VERSION
 from unplug.core.taint import TaintedText, TrustLevel
-from unplug.core.versions import MODEL_VERSION_LOCAL, NORMALIZER_VERSION
 from unplug.pipelines.input import InputPipeline
 from unplug.pipelines.output import OutputPipeline
 from unplug.pipelines.toolcall import ToolCallPipeline
-from unplug.safeguards import ScannerRegistry
-from unplug.safeguards.injection_ml import InjectionSpanScanner
+from unplug.scanners import ScannerRegistry
+from unplug.scanners.injection_ml import InjectionSpanScanner
 from unplug.streaming import StreamScanner, scan_stream
 
 _log = get_logger("guard")
@@ -150,10 +150,6 @@ class Guard:
         self._model_cache_version = MODEL_VERSION_LOCAL
 
         scanner_names = list(cfg.scanners)
-        from unplug.safeguards.yara_scanner import YaraCodeScanner
-
-        if scanners is None and YaraCodeScanner.is_available() and "yara" not in scanner_names:
-            scanner_names.append("yara")
         if cfg.mode != "server" and cfg.active_model:
             spec = prepare_active_model_spec(cfg)
             if spec is not None:
@@ -228,6 +224,7 @@ class Guard:
             leakage_scanner=self._registry.get("leakage"),
             secrets_scanner=self._registry.get("secrets"),
             url_scanner=self._registry.get("urls"),
+            pii_scanner=self._registry.get("pii") if "pii" in cfg.scanners else None,
             config=cfg.pipeline,
             metrics=self._metrics,
             trajectory_config=cfg.trajectory,

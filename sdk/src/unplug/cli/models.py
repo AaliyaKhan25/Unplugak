@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 
-from unplug.core.model_runtime import active_model_status
+from unplug.core.runtime.model_runtime import active_model_status
 from unplug.exceptions import ConfigError, ModelError
 from unplug.ml.catalog import load_catalog
 from unplug.ml.store import ModelStore

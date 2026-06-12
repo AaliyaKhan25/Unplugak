@@ -1,0 +1,59 @@
+[EMAIL_ADDRESS]
+subcategory = "email_address"
+base_score = 0.88
+
+[PHONE_NUMBER]
+subcategory = "phone_number"
+base_score = 0.88
+
+[CREDIT_CARD]
+subcategory = "credit_card"
+base_score = 0.92
+
+[US_SSN]
+subcategory = "ssn"
+base_score = 0.92
+
+[US_BANK_NUMBER]
+subcategory = "bank_account"
+base_score = 0.85
+
+[US_DRIVER_LICENSE]
+subcategory = "driver_license"
+base_score = 0.82
+
+[US_PASSPORT]
+subcategory = "passport"
+base_score = 0.85
+
+[IBAN_CODE]
+subcategory = "iban"
+base_score = 0.85
+
+[IP_ADDRESS]
+subcategory = "ip_address"
+base_score = 0.72
+
+[PERSON]
+subcategory = "person_name"
+base_score = 0.78
+
+[LOCATION]
+subcategory = "location"
+base_score = 0.72
+
+[NRP]
+subcategory = "nationality_religion_political"
+base_score = 0.7
+
+[MEDICAL_LICENSE]
+subcategory = "medical_license"
+base_score = 0.85
+
+[CRYPTO]
+subcategory = "crypto_wallet"
+base_score = 0.8
+
+[UK_NHS]
+subcategory = "uk_nhs"
+base_score = 0.85

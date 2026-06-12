@@ -11,10 +11,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from unplug.core.extras import require_extra
 from unplug.core.models import ModelSpec
 from unplug.exceptions import ConfigError
 from unplug.ml.catalog import CatalogTier, load_catalog
+from unplug.optional.ml import require_huggingface_hub
 
 
 def default_cache_root() -> Path:
@@ -98,11 +98,7 @@ class ModelStore:
             msg = f"Unknown model tier {tier!r}. Available: {', '.join(cat.tier_names())}"
             raise ConfigError(msg)
 
-        require_extra(
-            "huggingface_hub",
-            pip_extra="ml",
-            feature="Downloading models from Hugging Face Hub",
-        )
+        require_huggingface_hub()
         from huggingface_hub import snapshot_download
 
         dest = self.tier_dir(tier) / "checkpoint"

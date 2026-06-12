@@ -8,16 +8,16 @@ from typing import Any
 
 from unplug.config.agent_policy import DegradationConfig, TrajectoryConfig
 from unplug.config.policy import RedactionMode, ScanPolicy
+from unplug.core.agent.degradation import sync_degradation_from_trajectory
+from unplug.core.agent.trajectory import trajectory_findings
 from unplug.core.config import PipelineConfig
 from unplug.core.context import ExecutionContext
-from unplug.core.degradation import sync_degradation_from_trajectory
-from unplug.core.logging import get_logger
 from unplug.core.policy import decide_action
+from unplug.core.policy.sensitive_context import apply_sensitive_context_boost
 from unplug.core.redaction import apply_span_redactions
-from unplug.core.sensitive_context import apply_sensitive_context_boost
-from unplug.core.stats import MetricsCollector
+from unplug.core.runtime.logging import get_logger
+from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import Tagger, TaintedText, TrustLevel
-from unplug.core.trajectory import trajectory_findings
 from unplug.models import Action, Finding, ScanResult
 
 _log = get_logger("pipelines")

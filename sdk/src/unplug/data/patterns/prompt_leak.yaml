@@ -1,0 +1,3 @@
+- name: system_prompt_leak
+  regex: (?i)(system\s+prompt|my\s+instructions?\s+(are|say)|I\s+was\s+told\s+to)
+  flags: i

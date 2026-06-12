@@ -6,15 +6,15 @@ from typing import Any
 
 from unplug.config.agent_policy import BoundaryConfig, DegradationConfig, TrajectoryConfig
 from unplug.config.policy import ScanPolicy
-from unplug.core.boundaries import strip_boundary_markers
+from unplug.core.agent.boundaries import strip_boundary_markers
 from unplug.core.config import PipelineConfig
 from unplug.core.context import ExecutionContext
-from unplug.core.secrets import SecretsSanitizer
-from unplug.core.stats import MetricsCollector
+from unplug.core.privacy.secrets import SecretsSanitizer
+from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText, TrustLevel
 from unplug.models import Action, Finding, ScanResult
 from unplug.pipelines.base import BasePipeline
-from unplug.safeguards.base import BaseScanner
+from unplug.scanners.base import BaseScanner
 
 
 class OutputPipeline(BasePipeline):
@@ -26,6 +26,7 @@ class OutputPipeline(BasePipeline):
         leakage_scanner: BaseScanner | None = None,
         secrets_scanner: BaseScanner | None = None,
         url_scanner: BaseScanner | None = None,
+        pii_scanner: BaseScanner | None = None,
         config: PipelineConfig | None = None,
         metrics: MetricsCollector | None = None,
         trajectory_config: TrajectoryConfig | None = None,
@@ -42,6 +43,7 @@ class OutputPipeline(BasePipeline):
         self._leakage = leakage_scanner
         self._secrets = secrets_scanner
         self._urls = url_scanner
+        self._pii = pii_scanner
         self._boundary_config = boundary_config or BoundaryConfig()
 
     def run(
@@ -73,6 +75,8 @@ class OutputPipeline(BasePipeline):
             findings.extend(self._leakage.scan(input_data, context))
         if self._urls:
             findings.extend(self._urls.scan(input_data, context))
+        if self._pii:
+            findings.extend(self._pii.scan(input_data, context))
         return findings
 
     def _decide(

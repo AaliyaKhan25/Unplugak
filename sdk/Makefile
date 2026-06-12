@@ -18,22 +18,9 @@ check: lint
 	uv run pytest -q
 
 check-ci: check
-	uv run pytest tests/test_exfil_demo_integration.py -q
+	uv run pytest tests/integration/test_exfil_demo_integration.py -q
 	uv run python examples/agent_exfil_demo.py
-	uv run pytest \
-		tests/test_adversarial.py \
-		tests/test_false_positives.py \
-		tests/test_encodings.py \
-		tests/test_secrets.py \
-		tests/test_scan_policy.py \
-		tests/test_security_stress.py \
-		tests/test_sdk_coverage.py \
-		tests/test_agent_hardening.py \
-		tests/test_deployment_modes.py \
-		tests/test_ml_validation.py \
-		tests/test_ml_integration.py \
-		tests/test_scenario_replay.py \
-		-q
+	uv run pytest tests/security tests/integration/test_deployment_modes.py tests/unit/ml/test_ml_validation.py tests/integration/test_ml_integration.py tests/integration/test_scenario_replay.py -q
 	$(MAKE) scenarios
 	$(MAKE) attack-gate
 
@@ -41,7 +28,7 @@ attack-gate:
 	uv run python -m benchmarks.attacks.ci_gate
 
 test-ml:
-	uv run pytest tests/test_ml_validation.py tests/test_ml_integration.py tests/test_guard_ml.py tests/test_head_tail.py tests/test_span_ml.py tests/test_dual_head_ml.py -v
+	uv run pytest tests/unit/ml tests/integration/test_ml_integration.py tests/integration/test_guard_ml.py -v
 
 smoke-ml:
 	uv run python scripts/smoke_local_ml.py
@@ -56,32 +43,20 @@ examples:
 	uv run python examples/agent_exfil_demo.py
 	uv run python examples/langgraph_hooks_demo.py
 	uv run python examples/agno_hooks_demo.py
-	uv run pytest tests/test_examples.py -q -k "not docker_e2e"
+	uv run pytest tests/integration/test_examples.py -q -k "not docker_e2e"
 
 docker-e2e:
 	RUN_DOCKER_E2E=1 bash scripts/docker_e2e.sh
-	RUN_DOCKER_E2E=1 uv run pytest tests/test_examples.py::test_docker_e2e_script -v -o addopts=
+	RUN_DOCKER_E2E=1 uv run pytest tests/integration/test_examples.py::test_docker_e2e_script -v -o addopts=
 
 test:
 	uv run pytest -v
 
-# Coverage artifacts for CI PR comment (coverage.xml + pytest.xml).
-# Timing-sensitive stress tests run in check-ci; skip them here to avoid flaky reruns.
 test-cov:
-	uv run pytest -q -m "not requires_docker and not slow" --cov=unplug --cov-report=xml:coverage.xml --cov-report=term --junitxml=pytest.xml
+	uv run pytest -q -m "not requires_docker and not slow" --cov=unplug --cov-report=xml:coverage.xml --cov-report=term --cov-fail-under=75 --junitxml=pytest.xml
 
 test-security:
-	uv run pytest \
-		tests/test_adversarial.py \
-		tests/test_false_positives.py \
-		tests/test_encodings.py \
-		tests/test_secrets.py \
-		tests/test_scan_policy.py \
-		tests/test_security_stress.py \
-		tests/test_sdk_coverage.py \
-		tests/test_agent_hardening.py \
-		tests/test_financial.py \
-		-v
+	uv run pytest tests/security tests/unit/core/test_agent_hardening.py -v
 
 audit:
 	uv run unplug-audit

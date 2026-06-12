@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unplug.api.messages import ScrapeOutcome
 from unplug.config.messages import MessageConfig
-from unplug.core.asyncio_compat import run_coroutine_sync
+from unplug.core.runtime.asyncio_compat import run_coroutine_sync
 from unplug.guard import Guard
 from unplug.orchestrators.tool_output import ToolOutputOrchestrator
 from unplug.providers.content.firecrawl import FirecrawlProvider

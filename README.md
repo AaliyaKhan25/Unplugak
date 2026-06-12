@@ -1,6 +1,8 @@
 # Unplug
 
-**Find the attack. Cut the attack. Keep the rest.**
+**Unplug the bad AI.**
+
+Find the attack. Cut the attack. Keep the rest.
 
 Unplug is agent runtime security for LLM applications. It tracks where text came from (user vs retrieved vs tool output), scans for prompt injection and destructive actions, and enforces tool-call policy, with span-level redaction instead of binary blocking.
 

@@ -12,18 +12,18 @@ from unplug.config.agent_policy import (
     TrajectoryConfig,
 )
 from unplug.config.tools import ToolPolicyConfig
-from unplug.core.approval import build_approval_request
-from unplug.core.collusion import collusion_findings
+from unplug.core.agent.approval import build_approval_request
+from unplug.core.agent.collusion import collusion_findings
+from unplug.core.agent.degradation import degraded_tool_findings
+from unplug.core.agent.intent import check_intent_mismatch
+from unplug.core.agent.toolchain import toolchain_findings
 from unplug.core.config import PipelineConfig
 from unplug.core.context import ExecutionContext, ToolCall
-from unplug.core.degradation import degraded_tool_findings
-from unplug.core.intent import check_intent_mismatch
-from unplug.core.stats import MetricsCollector
+from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TrustLevel
-from unplug.core.toolchain import toolchain_findings
 from unplug.models import Action, Finding, ScanResult
 from unplug.pipelines.base import BasePipeline
-from unplug.safeguards.base import BaseScanner
+from unplug.scanners.base import BaseScanner
 
 
 class ToolCallPipeline(BasePipeline):

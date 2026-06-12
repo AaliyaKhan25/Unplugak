@@ -1,0 +1,1 @@
+"""Regex pattern lists (YAML)."""

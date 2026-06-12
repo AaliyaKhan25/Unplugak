@@ -1,6 +1,8 @@
 # Unplug SDK
 
-**Find the attack. Cut the attack. Keep the rest.**
+**Unplug the bad AI.**
+
+Find the attack. Cut the attack. Keep the rest.
 
 Unplug is a runtime defense layer for LLM apps and agents. It tracks where every piece of text came from, scans untrusted content for prompt injection, and gates tool calls before they do damage. Attacks are redacted at the span level, so the rest of the document stays usable.
 
@@ -176,13 +178,15 @@ Copy `unplug.example.toml` to `unplug.toml` to customize scanners, tool profiles
 
 Framework hooks for LangGraph and Agno, plus framework-agnostic patterns: [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
 
-Threat scanners live under `unplug.safeguards` (canonical). The older `unplug.scanners` path still works but emits deprecation warnings:
+Threat scanners live under `unplug.scanners` (canonical). The older `unplug.safeguards` path still works but emits deprecation warnings:
 
 ```python
-from unplug.safeguards.injection import InjectionScanner
-from unplug.safeguards.destructive import DestructiveScanner
-from unplug.safeguards.registry import SafeguardRegistry
+from unplug.scanners.injection import InjectionScanner
+from unplug.scanners.destructive import DestructiveScanner
+from unplug.scanners.registry import ScannerRegistry
 ```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for layering and optional extras.
 
 ## Examples
 

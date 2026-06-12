@@ -5,20 +5,20 @@ from __future__ import annotations
 from typing import Any
 
 from unplug.config.agent_policy import BoundaryConfig, DegradationConfig, TrajectoryConfig
-from unplug.core.asyncio_compat import run_coroutine_sync
-from unplug.core.boundaries import maybe_wrap_untrusted
+from unplug.core.agent.boundaries import maybe_wrap_untrusted
 from unplug.core.config import PipelineConfig
 from unplug.core.context import ExecutionContext
-from unplug.core.decision import ML_ABSTAIN_SUBCATEGORY, should_invoke_ml
-from unplug.core.encodings import EncodingClassifier, scan_encoding_blobs
 from unplug.core.judge import JudgeContext, JudgeProvider
-from unplug.core.logging import get_logger
 from unplug.core.normalize import Normalizer
-from unplug.core.stats import MetricsCollector
+from unplug.core.normalize.encodings import EncodingClassifier, scan_encoding_blobs
+from unplug.core.policy.decision import ML_ABSTAIN_SUBCATEGORY, should_invoke_ml
+from unplug.core.runtime.asyncio_compat import run_coroutine_sync
+from unplug.core.runtime.logging import get_logger
+from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText, TrustLevel, trust_level_from_source
 from unplug.models import Finding, Source
 from unplug.pipelines.base import BasePipeline
-from unplug.safeguards.base import BaseScanner
+from unplug.scanners.base import BaseScanner
 
 _log = get_logger("pipelines.input")
 

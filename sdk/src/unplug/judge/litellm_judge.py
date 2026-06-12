@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from unplug.core.extras import require_extra
 from unplug.core.judge import CallableJudge, JudgeProvider
+from unplug.optional.litellm import get_litellm
 
 
 def create_litellm_judge(
@@ -16,12 +16,7 @@ def create_litellm_judge(
 
     Requires: pip install 'unplug-ai[litellm]'
     """
-    require_extra(
-        "litellm",
-        pip_extra="litellm",
-        feature="LiteLLM judge",
-    )
-    import litellm
+    litellm = get_litellm()
 
     async def _call(prompt: str) -> str:
         kwargs: dict[str, object] = {
@@ -38,8 +33,6 @@ def create_litellm_judge(
 
 
 def litellm_available() -> bool:
-    try:
-        require_extra("litellm", pip_extra="litellm", feature="LiteLLM")
-    except ImportError:
-        return False
-    return True
+    from unplug.optional._base import import_optional
+
+    return import_optional("litellm", pip_extra="litellm", feature="LiteLLM") is not None
