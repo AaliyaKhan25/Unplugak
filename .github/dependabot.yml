@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /sdk
+    schedule:
+      interval: weekly
+    groups:
+      python-deps:
+        patterns:
+          - "*"
+    target-branch: dev
+    labels:
+      - dependencies
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: dev
+    labels:
+      - dependencies

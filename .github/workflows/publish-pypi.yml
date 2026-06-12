@@ -1,9 +1,6 @@
 name: Publish to PyPI
 
-# v0.1.0 ships regex + tool enforcement as the default (no bundled model), so it can
-# publish now. The optional ML extra later points at a validated DeBERTa-v3-xsmall
-# dual-head checkpoint whose metrics are gated by the golden harness.
-#
+# Releases run the full CI gate before building.
 # Token: GitHub Environment "pypi", secret "PYPI_TOKEN".
 
 on:
@@ -33,12 +30,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install and test
+      - name: Install
+        run: uv sync --all-extras --dev
+
+      - name: CI gate (make check-ci; docker E2E is local-only)
         env:
           RUN_DOCKER_E2E: ""
-        run: |
-          uv sync --all-extras --dev
-          uv run pytest -q
+        run: make check-ci
 
       - name: Build
         run: uv build

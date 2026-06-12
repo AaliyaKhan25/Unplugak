@@ -7,6 +7,7 @@ Find the attack. Cut the attack. Keep the rest.
 Unplug is a runtime defense layer for LLM apps and agents. It tracks where every piece of text came from, scans untrusted content for prompt injection, and gates tool calls before they do damage. Attacks are redacted at the span level, so the rest of the document stays usable.
 
 <p>
+  <a href="https://github.com/UnplugAI/Unplug/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/UnplugAI/Unplug/actions/workflows/ci.yml/badge.svg?branch=dev"></a>
   <a href="https://pypi.org/project/unplug-ai/"><img alt="PyPI" src="https://img.shields.io/pypi/v/unplug-ai"></a>
   <a href="https://huggingface.co/spaces/Unplug-AI/unplug-tiny-demo"><img alt="Live demo" src="https://img.shields.io/badge/Live_demo-Hugging_Face_Space-22c55e"></a>
   <a href="https://huggingface.co/Unplug-AI/unplug-tiny-v1"><img alt="Model" src="https://img.shields.io/badge/Model-unplug--tiny--v1-f59e0b"></a>

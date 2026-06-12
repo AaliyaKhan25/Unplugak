@@ -1,0 +1,15 @@
+# Summary
+
+<!-- What does this PR change, and why? -->
+
+## Checklist
+
+- [ ] Target branch is `dev` (see [BRANCHING.md](BRANCHING.md))
+- [ ] `cd sdk && make check-ci` passes locally
+- [ ] New code has tests (every module gets a test file)
+- [ ] Public API changes are reflected in `sdk/README.md` / `sdk/docs/`
+- [ ] No secrets, internal URLs, or private paths in the diff
+
+## Notes for reviewers
+
+<!-- Anything that needs extra attention: tricky spans, security-sensitive logic, perf. -->
