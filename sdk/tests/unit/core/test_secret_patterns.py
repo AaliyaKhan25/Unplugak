@@ -16,20 +16,23 @@ def _match(subcategory: str, text: str) -> bool:
 
 class TestSecretTokenPatterns:
     def test_expanded_provider_tokens(self) -> None:
+        # Fixture tokens are assembled from parts so no literal in this file
+        # is token-shaped (keeps GitHub push protection and similar secret
+        # scanners from flagging the test suite itself).
         samples = {
             "anthropic_key": (
-                "key sk-ant-SCRUBBED"
+                "key sk-ant-" + "api03-AbCdEfGhIjKlMnOpQrStUvWxYz1234567890"
                 "AbCdEfGhIjKlMnOpQrStUvWxYz1234567890AbCdEfGh"
             ),
-            "google_api_key": "AIzaSy_SCRUBBED",
-            "huggingface_token": "hf_SCRUBBED",
-            "gitlab_token": "glpat-SCRUBBED",
-            "stripe_secret": "sk_live_SCRUBBED",
-            "stripe_restricted": "rk_test_SCRUBBED",
-            "npm_token": "npm_SCRUBBED",
-            "sendgrid_key": "SG.SCRUBBED",
-            "twilio_key": "SK_SCRUBBED",
-            "bearer_token": "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+            "google_api_key": "AIzaSy" + "Dtest1234567890123456789012345678",
+            "huggingface_token": "hf_" + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ",
+            "gitlab_token": "glpat-" + "abcdefghijklmnopqrst",
+            "stripe_secret": "sk_live_" + "abcdefghijklmnopqrstuvwx",
+            "stripe_restricted": "rk_test_" + "abcdefghijklmnopqrstuvwx",
+            "npm_token": "npm_" + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ",
+            "sendgrid_key": "SG." + "abcdefghijklmnopqrstuv.wxyz1234567890abcdefghijklmnop",
+            "twilio_key": "SK" + "0123456789abcdef0123456789abcdef",
+            "bearer_token": "Authorization: Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
         }
         for subcategory, text in samples.items():
             assert _match(subcategory, text), subcategory
@@ -42,7 +45,7 @@ class TestSecretTokenPatterns:
     def test_leakage_scanner_detects_new_tokens(self) -> None:
         scanner = LeakageScanner()
         text = TaintedText(
-            text="deploy with hf_SCRUBBED",
+            text="deploy with hf_" + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJ",
             trust_level=TrustLevel.TOOL_OUTPUT,
             origin="test",
         )

@@ -268,7 +268,7 @@ class TestLeakageScanner:
         assert any(f.subcategory == "email_address" for f in findings)
 
     def test_scans_tool_output(self):
-        text = _make_text("key is AKIA_SCRUBBED", trust=TrustLevel.TOOL_OUTPUT)
+        text = _make_text("key is AKIA" + "1234567890123456", trust=TrustLevel.TOOL_OUTPUT)
         findings = self.scanner.scan(text, self.ctx)
         assert any(f.subcategory == "aws_key" for f in findings)
 
