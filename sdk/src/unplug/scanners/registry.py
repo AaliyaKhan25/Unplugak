@@ -95,5 +95,15 @@ class ScannerRegistry:
         return scanners
 
 
-# Backward-compatible alias (deprecated in v0.4, remove in v1.0)
-SafeguardRegistry = ScannerRegistry
+def __getattr__(name: str) -> type[ScannerRegistry]:
+    # Backward-compatible alias (deprecated in v0.4, remove in v1.0).
+    if name == "SafeguardRegistry":
+        import warnings
+
+        warnings.warn(
+            "SafeguardRegistry is deprecated; use ScannerRegistry instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return ScannerRegistry
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

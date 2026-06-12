@@ -10,7 +10,8 @@ warnings.warn(
     stacklevel=2,
 )
 
-from unplug.scanners import SafeguardRegistry, ScannerRegistry
+from unplug.scanners import ScannerRegistry
+from unplug.scanners import ScannerRegistry as SafeguardRegistry
 from unplug.scanners.base import BaseScanner, ModelScanner, RegexScanner, Scanner
 
 __all__ = [

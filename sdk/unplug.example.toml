@@ -91,7 +91,7 @@ base_score = 0.90
 # Or: export UNPLUG_MODEL_PATH=/path/to/checkpoint-66630
 # Dual-head checkpoint: config.json must include "dual_head": true
 
-# Catalog default: repo_id = "Unplug-AI/unplug-tiny-v1" (see src/unplug/models/catalog.toml)
+# Catalog default: repo_id = "Unplug-AI/unplug-tiny-v1" (see src/unplug/data/catalog.toml)
 # Override only for offline/air-gapped: path = "/path/to/checkpoint"
 
 [policy]

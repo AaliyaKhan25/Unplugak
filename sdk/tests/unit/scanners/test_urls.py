@@ -1,4 +1,4 @@
-"""Tests for safeguards/urls.py — malicious URL detection."""
+"""Tests for scanners/urls.py — malicious URL detection."""
 
 from __future__ import annotations
 

@@ -23,7 +23,7 @@ from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import Tagger, TaintedText, TrustLevel
 from unplug.guard import Guard
 from unplug.models import Action, Finding, ScanResult, Source
-from unplug.scanners import SafeguardRegistry, ScannerRegistry
+from unplug.scanners import ScannerRegistry
 from unplug.scanners.base import BaseScanner, ModelScanner, RegexScanner
 
 __all__ = [
@@ -68,4 +68,13 @@ try:
     # Single source of truth is pyproject.toml; avoids version drift.
     __version__ = _pkg_version("unplug-ai")
 except PackageNotFoundError:  # not installed (e.g. running from a source checkout)
-    __version__ = "0.2.3"
+    __version__ = "0.3.0"
+
+
+def __getattr__(name: str) -> object:
+    # Deprecated alias kept importable without warning on package import.
+    if name == "SafeguardRegistry":
+        from unplug.scanners import registry
+
+        return registry.SafeguardRegistry
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -6,7 +6,7 @@ from benchmarks.builtin_samples import ALL_SAMPLES, FINANCIAL_TOOL_SAMPLES
 from benchmarks.loader import Sample
 from unplug import Guard
 from unplug.api.types import ScanResult
-from unplug.scanners.registry import SafeguardRegistry
+from unplug.scanners.registry import ScannerRegistry
 
 
 def _run_sample(guard: Guard, sample: Sample) -> ScanResult:
@@ -37,7 +37,7 @@ BUILTIN_SCANNERS = {
 
 class TestScannerRegistry:
     def test_all_builtin_scanners_registered(self) -> None:
-        available = set(SafeguardRegistry.available())
+        available = set(ScannerRegistry.available())
         assert BUILTIN_SCANNERS.issubset(available)
 
 

@@ -12,8 +12,12 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Security",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
 ]
 
 dependencies = [
@@ -69,10 +73,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/unplug"]
 include = [
+    "src/unplug/py.typed",
     "src/unplug/data/**",
     "src/unplug/audit/data/*.json",
-    "src/unplug/models/catalog.toml",
-    "src/unplug/safeguards/yara_rules/*.yara",
 ]
 
 [tool.ruff]
@@ -100,7 +103,6 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["N802", "N803", "RUF001", "RUF003", "RUF012", "B011"]
-"src/unplug/core/normalize.py" = ["RUF001", "RUF003", "SIM102"]
 "src/unplug/core/normalize/normalize.py" = ["RUF001", "RUF003", "SIM102"]
 "src/unplug/safeguards/__init__.py" = ["E402"]
 
@@ -131,7 +133,7 @@ filterwarnings = [
     "ignore:builtin type swigvarlink:DeprecationWarning",
     "ignore:builtin type SwigPyPacked:DeprecationWarning",
     "ignore:builtin type SwigPyObject:DeprecationWarning",
-    "ignore:unplug.scanners:DeprecationWarning",
+    "ignore:unplug.safeguards:DeprecationWarning",
 ]
 
 [project.scripts]

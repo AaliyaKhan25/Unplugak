@@ -7,7 +7,7 @@ import pytest
 from unplug.core.context import ExecutionContext
 from unplug.core.taint import TaintedText, TrustLevel
 from unplug.scanners.pii import PresidioPiiScanner
-from unplug.scanners.registry import SafeguardRegistry
+from unplug.scanners.registry import ScannerRegistry
 
 
 def _presidio_available() -> bool:
@@ -24,7 +24,7 @@ pytestmark = pytest.mark.skipif(not _presidio_available(), reason="presidio extr
 
 class TestPresidioPiiScanner:
     def test_registry_lists_pii(self) -> None:
-        assert "pii" in SafeguardRegistry.available()
+        assert "pii" in ScannerRegistry.available()
 
     def test_detects_email_and_person(self) -> None:
         scanner = PresidioPiiScanner()
