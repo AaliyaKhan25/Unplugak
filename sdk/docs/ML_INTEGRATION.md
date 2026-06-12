@@ -1,10 +1,10 @@
-# ML integration checklist (dual-head v1.21+)
+# ML integration
 
-Ship after golden gates pass on the GPU run. Do not publish weights until `reports/golden.json` shows all required gates green.
+How to enable the ML span model on top of the regex core.
 
 ## Checkpoint layout
 
-Slim export from `unplug_exp/scripts/export_slim_checkpoints.py`:
+A checkpoint directory needs:
 
 ```
 checkpoint-slim/
@@ -16,9 +16,9 @@ checkpoint-slim/
 
 ## Hugging Face model (recommended)
 
-Public preview weights: **`Unplug-AI/unplug-tiny-v1`** (DeBERTa-v3-xsmall dual-head, checkpoint-66630).
+Public preview weights: **`Unplug-AI/unplug-tiny-v1`** (dual-head span model).
 
-The bundled catalog in `src/unplug/models/catalog.toml` pins this repo. Enable auto-download:
+The bundled catalog in `src/unplug/data/catalog.toml` pins this repo. Enable auto-download:
 
 ```toml
 # unplug.toml
@@ -115,10 +115,6 @@ Encoding blobs (Base64) use the same thresholds via decode-then-classify.
 
 ## Release artifacts
 
-- `BENCHMARKS.md` - auto-generated from golden eval (no hand-typed numbers)
+- `BENCHMARKS.md` — auto-generated from the evaluation harness (no hand-typed numbers)
 - PyPI `unplug-ai` version bump after gate review
-- HuggingFace model repo: `Unplug-AI/unplug-tiny-v1`
-
-## v1.22 fallback
-
-If v1.21 fails FPR gates, rebuild data with `./scripts/prepare_v122_fallback.sh` in `unplug_exp` before retraining. See `docs/V122_FALLBACK_DATA_PLAN.md`.
+- Hugging Face model repo: `Unplug-AI/unplug-tiny-v1`

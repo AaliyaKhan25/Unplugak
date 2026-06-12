@@ -2,6 +2,31 @@
 
 **Unplug the bad AI.**
 
+## Getting started (fork workflow)
+
+1. Fork [UnplugAI/Unplug](https://github.com/UnplugAI/Unplug) and clone your fork.
+2. Set up the SDK:
+
+```bash
+cd sdk
+uv sync --all-extras --dev   # everything, including optional extras
+# or minimal core only:
+uv sync --dev
+```
+
+3. Optional extras map to scanner features — install only what you touch:
+
+| Extra | Enables |
+|-------|---------|
+| `ml` | ML span model (`Guard.with_tiny()`) |
+| `yara` | YARA code/SQLi/XSS scanner |
+| `presidio` | Presidio PII scanner |
+| `litellm` | LLM judge for borderline cases |
+| `haystack` | Haystack RAG integration |
+| `scrape` | Firecrawl content provider |
+
+4. Verify your environment: `make check` (lint + format + tests).
+
 ## Branching and PRs
 
 - Do **not** push directly to `main`.
@@ -9,6 +34,7 @@
 - Open a PR targeting **`dev`**; iterate in review until green CI.
 - Merge via squash or merge commit after approval.
 - `main` is release-only — see [`.github/BRANCHING.md`](.github/BRANCHING.md).
+- Releases are tagged from `main` and published by maintainers — see [`sdk/PUBLISH.md`](sdk/PUBLISH.md).
 
 ## What not to commit
 
@@ -52,6 +78,23 @@ make audit-ml
 ```
 
 From repo root: `make check`, `make check-ci`, `make fix`, `make test`.
+
+## Test layout
+
+`sdk/tests/` mirrors `sdk/src/unplug/`:
+
+```bash
+uv run pytest tests/unit           # fast, no optional deps
+uv run pytest tests/unit/core      # core subpackages (taint, normalize, policy, ...)
+uv run pytest tests/integration    # Guard end-to-end, client, examples
+uv run pytest tests/security       # adversarial + regression gate
+uv run pytest tests/optional       # presidio / yara / haystack / litellm (skip when extras missing)
+```
+
+Every new module gets a test file in the mirrored location.
+
+ML checkpoint tests skip unless `UNPLUG_TEST_CHECKPOINT` (or `UNPLUG_MODEL_PATH`)
+points at a local checkpoint directory — see `.env.example`.
 
 ## Code conventions
 

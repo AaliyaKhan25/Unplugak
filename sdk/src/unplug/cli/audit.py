@@ -17,7 +17,7 @@ def main() -> None:
         "--workspace-root",
         type=Path,
         default=None,
-        help="Repo root containing repos/unplug_exp (default: auto-detect)",
+        help="Workspace root for local probe overrides (default: auto-detect)",
     )
     parser.add_argument(
         "--probes",

@@ -29,10 +29,9 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     except httpx.RequestError as exc:
         print(f"Sidecar not reachable at {url}: {exc}", file=sys.stderr)
         print(
-            "\nStart the sidecar:\n"
-            "  cd repos/unplug-server\n"
+            "\nStart the sidecar (from the unplug-server repo):\n"
             "  docker compose -f docker-compose.sidecar.yml up\n"
-            "Or see sdk/docs/DEPLOYMENT.md for embedded vs sidecar paths.",
+            "Or see docs/DEPLOYMENT.md for embedded vs sidecar paths.",
             file=sys.stderr,
         )
         return 1

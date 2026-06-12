@@ -22,9 +22,7 @@ from unplug.core.runtime.model_runtime import load_active_model_provider
 from unplug.ml.validation import resolve_validation_checkpoint
 
 ROOT = Path(__file__).resolve().parents[4]
-_BUNDLED = ROOT / "src/unplug/audit/data/encoding_probe_queries.json"
-_MONOREPO = ROOT.parent / "repos/unplug_exp/configs/encoding_probe_queries.json"
-PROBES = _BUNDLED if _BUNDLED.is_file() else _MONOREPO
+PROBES = ROOT / "src/unplug/audit/data/encoding_probe_queries.json"
 
 
 def _checkpoint() -> Path | None:

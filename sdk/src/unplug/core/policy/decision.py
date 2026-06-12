@@ -1,4 +1,4 @@
-"""Unified ML decision policy — doc/span modes (unplug_exp parity) and abstain band."""
+"""Unified ML decision policy — doc/span modes and abstain band."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def max_span_score(spans: list[object]) -> float:
 
 
 class DecisionPolicy(BaseModel):
-    """Configurable doc/span decision — ported from unplug_exp lib/decision.py."""
+    """Configurable doc/span decision policy."""
 
     model_config = {"frozen": True}
 
@@ -113,7 +113,7 @@ def decide_ml_band(
     tau_span: float,
     tau_abstain_low: float,
 ) -> MlBand:
-    """DOC_OR_SPAN band aligned with unplug_exp v122 decision policy."""
+    """DOC_OR_SPAN band decision with the calibrated abstain window."""
     return decide_band(
         doc_score=doc_score,
         span_score=span_score,

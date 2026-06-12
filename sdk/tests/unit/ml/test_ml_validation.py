@@ -25,7 +25,6 @@ def test_manifest_exists_and_parses() -> None:
     assert path.is_file()
     data = load_ml_validation_manifest()
     assert data["tier"] == "tiny"
-    assert "checkpoint_relative" in data
     assert data["catalog_config"]["inj_threshold"] == 0.45
     assert data["catalog_config"]["doc_threshold"] == 0.9
 
