@@ -38,6 +38,19 @@ def test_catalog_config_from_manifest_matches_catalog() -> None:
     assert tiny.config["max_length"] == manifest["max_length"]
 
 
+def test_catalog_config_from_manifest_missing_catalog_returns_empty(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    missing = tmp_path / "missing-catalog.toml"
+
+    def _missing_catalog() -> None:
+        raise FileNotFoundError(f"Model catalog not found: {missing}")
+
+    monkeypatch.setattr("unplug.ml.catalog.load_catalog", _missing_catalog)
+    assert catalog_config_from_manifest() == {}
+
+
 def test_resolve_checkpoint_without_weights() -> None:
     ckpt = resolve_validation_checkpoint(require_weights=False)
     if ckpt is None:

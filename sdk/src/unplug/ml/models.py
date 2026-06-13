@@ -118,3 +118,11 @@ class ModelRegistry:
     def loaded_models(self) -> list[str]:
         with self._lock:
             return list(self._providers.keys())
+
+
+__all__ = [
+    "ModelProvider",
+    "ModelRegistry",
+    "ModelSpec",
+    "NullModelProvider",
+]
