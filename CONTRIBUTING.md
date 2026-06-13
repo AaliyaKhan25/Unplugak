@@ -50,7 +50,7 @@ GitHub Actions runs on every PR to `dev` ([`.github/workflows/ci.yml`](.github/w
 
 1. **Ruff** — `ruff check .` + `ruff format --check .`
 2. **Tests** — full pytest suite (`pytest -q`)
-3. **Exfil demo gate** — `test_exfil_demo_integration.py` + `examples/agent_exfil_demo.py`
+3. **Exfil demo gate** — `test_exfil_demo_integration.py` + `sdk/examples/agent_exfil_demo.py`
 4. **Security regression** — explicit subset (adversarial, encodings, secrets, agent hardening, etc.)
 
 ## Local checks (SDK)

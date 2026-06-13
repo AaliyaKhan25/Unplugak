@@ -28,8 +28,7 @@ _RAPID_FIRE_WINDOW_S = _toolchain.rapid_fire_window_seconds
 _RAPID_FIRE_THRESHOLD = _toolchain.rapid_fire_threshold
 
 _SUSPICIOUS_CHAINS: list[tuple[str, list[str], float]] = [
-    (entry.subcategory, list(entry.sequence), entry.score)
-    for entry in _toolchain.suspicious_chains
+    (entry.subcategory, list(entry.sequence), entry.score) for entry in _toolchain.suspicious_chains
 ]
 
 

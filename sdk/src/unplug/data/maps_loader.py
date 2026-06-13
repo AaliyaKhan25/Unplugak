@@ -5,15 +5,20 @@ from __future__ import annotations
 import tomllib
 from functools import lru_cache
 from importlib import resources
+from typing import TYPE_CHECKING
 
 from unplug.data.schemas import (
     AgentToolsMap,
     NormalizeMaps,
+    ScannerDefaultEntry,
     SuspiciousChainEntry,
     ToolchainMaps,
     ToolPatternsMap,
     ToolProfileMapEntry,
 )
+
+if TYPE_CHECKING:
+    from unplug.config.guard import ScannerConfig
 
 
 def _read_text(resource: str) -> str:
@@ -155,14 +160,42 @@ def load_normalize_maps() -> NormalizeMaps:
     if not isinstance(zero_width, str):
         msg = "normalize.toml [leet] requires zero_width_chars"
         raise TypeError(msg)
-    leet = {
-        str(key): str(value)
-        for key, value in leet_raw.items()
-        if key != "zero_width_chars"
-    }
+    leet = {str(key): str(value) for key, value in leet_raw.items() if key != "zero_width_chars"}
     return NormalizeMaps(
         leet=leet,
         homoglyphs=_string_map(homoglyphs_raw),
         override_verbs=_string_map(override_raw),
         zero_width_chars=zero_width,
+    )
+
+
+def _read_defaults_text(resource: str) -> str:
+    return resources.files("unplug.data.defaults").joinpath(resource).read_text(encoding="utf-8")
+
+
+@lru_cache(maxsize=4)
+def load_scanner_defaults() -> dict[str, ScannerDefaultEntry]:
+    """Bundled default ScannerConfig values per scanner name."""
+    raw = _read_defaults_text("scanners.toml")
+    parsed = tomllib.loads(raw)
+    return {
+        str(name): ScannerDefaultEntry.model_validate(section)
+        for name, section in parsed.items()
+        if isinstance(section, dict)
+    }
+
+
+def default_scanner_config(name: str) -> ScannerConfig:
+    """Build a ScannerConfig from data/defaults/scanners.toml."""
+    from unplug.config.guard import ScannerConfig
+
+    try:
+        entry = load_scanner_defaults()[name]
+    except KeyError as exc:
+        msg = f"unknown scanner default: {name!r}"
+        raise KeyError(msg) from exc
+    return ScannerConfig(
+        base_score=entry.base_score,
+        enabled=entry.enabled,
+        normalize=entry.normalize,
     )

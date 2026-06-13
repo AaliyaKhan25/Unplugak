@@ -60,3 +60,11 @@ class NormalizeMaps(BaseModel):
     homoglyphs: dict[str, str]
     override_verbs: dict[str, str]
     zero_width_chars: str
+
+
+class ScannerDefaultEntry(BaseModel):
+    model_config = {"frozen": True}
+
+    base_score: float
+    enabled: bool = True
+    normalize: bool = False

@@ -191,6 +191,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for layering and optional extra
 
 ## Examples
 
+- [`examples/quickstart.py`](examples/quickstart.py): minimal local Guard scan
+- [`examples/server_client.py`](examples/server_client.py): HTTP client against a running sidecar
 - [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py): hidden injection, tainted session, blocked exfil tool call
 - [`examples/langgraph_hooks_demo.py`](examples/langgraph_hooks_demo.py) and [`examples/agno_hooks_demo.py`](examples/agno_hooks_demo.py): framework hooks
 - [`examples/hosted_client.py`](examples/hosted_client.py) and [`examples/local_sidecar_client.py`](examples/local_sidecar_client.py): server modes

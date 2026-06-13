@@ -10,10 +10,10 @@ from typing import ClassVar, Protocol, runtime_checkable
 
 from unplug.core.config import ScannerConfig
 from unplug.core.context import ExecutionContext
-from unplug.core.models import ModelProvider, ModelSpec, NullModelProvider
 from unplug.core.runtime.logging import get_logger
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText
+from unplug.ml.models import ModelProvider, ModelSpec, NullModelProvider
 from unplug.models import Finding
 
 _log = get_logger("safeguards")

@@ -9,11 +9,12 @@ from unplug.core.context import ExecutionContext
 from unplug.core.normalize import Normalizer
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText
+from unplug.data.maps_loader import default_scanner_config
 from unplug.models import Finding
 from unplug.scanners.base import BaseScanner
 from unplug.scanners.yara_loader import get_yara_rules
 
-_DEFAULT_CONFIG = ScannerConfig(base_score=0.88, enabled=True, normalize=True)
+_DEFAULT_CONFIG = default_scanner_config("yara")
 
 # YARA rules use AND conditions regex cannot express in one pass (e.g. SQL keyword + comment).
 _RULE_SCORES: dict[str, float] = {
