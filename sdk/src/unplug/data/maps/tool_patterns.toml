@@ -1,0 +1,120 @@
+# Tool classification regexes — side-effect vs taint-source vs access profiles.
+# Override at runtime via unplug.toml [tools] side_effect_patterns / taint_source_patterns.
+
+[side_effect]
+patterns = [
+  "^exec",
+  "^shell",
+  "^bash",
+  "^run_terminal",
+  "^run_command",
+  "^terminal",
+  "^write",
+  "^edit",
+  "^apply_patch",
+  "^write_file",
+  "^create_file",
+  "^delete",
+  "^remove",
+  "^send_message",
+  "^send_email",
+  "^post_message",
+  "^message_send",
+  "^browser_click",
+  "^browser_type",
+  "^browser_navigate",
+  "^pay",
+  "^transfer",
+  "^stripe",
+  "^rm",
+  "drop_table",
+  "run_query",
+  "db_exec",
+]
+
+[taint_source]
+patterns = [
+  "^web_fetch",
+  "^web_search",
+  "^fetch",
+  "^browser",
+  "^read",
+  "^read_file",
+  "^grep",
+  "^search",
+  "^scrape",
+  "^http",
+]
+
+[profiles.readonly]
+blocked_patterns = [
+  "^exec",
+  "^shell",
+  "^bash",
+  "^run_terminal",
+  "^run_command",
+  "^terminal",
+  "^write",
+  "^edit",
+  "^apply_patch",
+  "^write_file",
+  "^create_file",
+  "^delete",
+  "^remove",
+  "^send_message",
+  "^send_email",
+  "^post_message",
+  "^message_send",
+  "^browser_click",
+  "^browser_type",
+  "^browser_navigate",
+  "^pay",
+  "^transfer",
+  "^stripe",
+  "^rm",
+  "drop_table",
+  "run_query",
+  "db_exec",
+]
+allowed_patterns = [
+  "^search",
+  "^grep",
+  "^read",
+  "^lookup",
+  "^scan",
+  "^list",
+  "^get",
+  "^fetch",
+  "^web_search",
+  "^session",
+]
+
+[profiles.messaging]
+blocked_patterns = [
+  "^exec",
+  "^shell",
+  "^bash",
+  "^run_terminal",
+  "^run_command",
+  "^terminal",
+  "^write",
+  "^edit",
+  "^apply_patch",
+  "^write_file",
+  "^create_file",
+  "^delete",
+  "^remove",
+  "^browser_click",
+  "^browser_type",
+  "^browser_navigate",
+  "^pay",
+  "^transfer",
+  "^stripe",
+  "^rm",
+  "drop_table",
+  "run_query",
+  "db_exec",
+]
+
+[profiles.full]
+blocked_patterns = []

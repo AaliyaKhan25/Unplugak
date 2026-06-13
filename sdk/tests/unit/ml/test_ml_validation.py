@@ -25,11 +25,11 @@ def test_manifest_exists_and_parses() -> None:
     assert path.is_file()
     data = load_ml_validation_manifest()
     assert data["tier"] == "tiny"
-    assert data["catalog_config"]["inj_threshold"] == 0.45
-    assert data["catalog_config"]["doc_threshold"] == 0.9
+    assert "required_files" in data
+    assert "catalog_config" not in data
 
 
-def test_catalog_toml_matches_manifest_thresholds() -> None:
+def test_catalog_config_from_manifest_matches_catalog() -> None:
     manifest = catalog_config_from_manifest()
     cat = load_catalog()
     tiny = cat.tiers["tiny"]

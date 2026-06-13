@@ -6,16 +6,12 @@ import re
 
 from unplug.config.agent_policy import IntentConfig
 from unplug.core.context import ExecutionContext, ToolCall
+from unplug.data.maps_loader import load_agent_tools_map
 from unplug.models import Finding
 
-_BENIGN_INTENT = re.compile(
-    r"(?i)\b(summarize|summary|explain|describe|what\s+is|tell\s+me\s+about|"
-    r"translate|overview|compare|list\s+the|how\s+does|help\s+me\s+understand)\b",
-)
-_DESTRUCTIVE_INTENT = re.compile(
-    r"(?i)\b(delete|remove|drop|wipe|destroy|execute|run\s+command|shell|"
-    r"write\s+file|deploy|transfer|send\s+money|purchase)\b",
-)
+_intent_maps = load_agent_tools_map()
+_BENIGN_INTENT = re.compile(_intent_maps.intent_benign_regex)
+_DESTRUCTIVE_INTENT = re.compile(_intent_maps.intent_destructive_regex)
 
 
 def check_intent_mismatch(

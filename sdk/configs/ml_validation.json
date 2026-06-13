@@ -1,12 +1,6 @@
 {
   "tier": "tiny",
-  "description": "Validation pin for the unplug-tiny span model",
-  "catalog_config": {
-    "inj_threshold": 0.45,
-    "doc_threshold": 0.9,
-    "max_length": 512,
-    "stride": 64
-  },
+  "description": "Validation pin for the unplug-tiny span model (thresholds from data/catalog.toml)",
   "required_files": [
     "config.json",
     "tokenizer.json"
