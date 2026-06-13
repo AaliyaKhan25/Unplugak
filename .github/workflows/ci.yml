@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           version: "0.6.14"
@@ -33,12 +33,25 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install
-        run: uv sync --all-extras --dev
+        run: |
+          if [ "${{ matrix.python-version }}" = "3.13" ]; then
+            # tokenizers 0.19 (pulled by ml/litellm) has no cp313 wheels yet — skip those extras.
+            uv sync --extra dev --extra scrape --extra yara --extra haystack --extra presidio --group dev
+          else
+            uv sync --all-extras --dev
+          fi
 
       - name: CI gate (make check-ci; docker E2E is local-only)
         env:
           RUN_DOCKER_E2E: ""
-        run: make check-ci
+        run: |
+          if [ "${{ matrix.python-version }}" = "3.13" ]; then
+            make lint
+            uv run ruff format --check .
+            uv run pytest -q -m "not requires_docker and not requires_ml and not requires_ml_weights"
+          else
+            make check-ci
+          fi
 
       - name: Coverage report
         if: matrix.python-version == '3.12'
