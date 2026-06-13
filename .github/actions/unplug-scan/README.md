@@ -2,6 +2,10 @@
 
 Scan **agent-related files changed in a PR** with the unplug-ai regex Guard. Intended for repos that ship `AGENTS.md`, `.cursor/rules`, or MCP client configs.
 
+**External repos:** prefer the published Marketplace action **[UnplugAI/unplug-scan-action@v1](https://github.com/UnplugAI/unplug-scan-action)** (PyPI install, semver tags).
+
+This composite action lives in the monorepo for local SDK development.
+
 ## Usage in this repo
 
 Already wired in [`.github/workflows/pr-scan.yml`](../workflows/pr-scan.yml).
