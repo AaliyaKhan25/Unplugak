@@ -15,19 +15,19 @@ Package: **`unplug-ai`** | Import: **`from unplug import Guard`**
 ## Publish
 
 **CI (recommended):** Actions -> **Publish to PyPI** -> Run workflow  
-Or tag a GitHub Release - workflow runs on `release: published`.
+Or tag a GitHub Release: workflow runs on `release: published`.
 
 **Local:**
 
 ```bash
 cd sdk
-uv sync --dev
-uv run pytest -q
+uv sync --all-extras --dev
+make check-ci
 uv build
 UV_PUBLISH_TOKEN=pypi-... uv publish
 ```
 
 ## After publish
 
-- Site links: `pip install unplug-ai` -> https://pypi.org/project/unplug-ai/
-- Bump `sdkVersion` in `unplug-site/public/js/core/site-config.jsx` when releasing new versions.
+- Verify: `pip install unplug-ai` -> https://pypi.org/project/unplug-ai/
+- Update the version shown on the website.

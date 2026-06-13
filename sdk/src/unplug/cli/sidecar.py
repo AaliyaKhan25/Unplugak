@@ -1,4 +1,4 @@
-"""CLI: unplug-sidecar — verify and configure local unplug-server sidecar."""
+"""CLI: unplug-sidecar: verify and configure local unplug-server sidecar."""
 
 from __future__ import annotations
 
@@ -29,10 +29,9 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     except httpx.RequestError as exc:
         print(f"Sidecar not reachable at {url}: {exc}", file=sys.stderr)
         print(
-            "\nStart the sidecar:\n"
-            "  cd repos/unplug-server\n"
+            "\nStart the sidecar (from the unplug-server repo):\n"
             "  docker compose -f docker-compose.sidecar.yml up\n"
-            "Or see sdk/docs/DEPLOYMENT.md for embedded vs sidecar paths.",
+            "Or see docs/DEPLOYMENT.md for embedded vs sidecar paths.",
             file=sys.stderr,
         )
         return 1
@@ -50,7 +49,7 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         return 1
     print("\nSDK env (no API key for local sidecar):")
     print(f"  export UNPLUG_SERVER_URL={url}")
-    print('  # Guard(mode="server") — see examples/local_sidecar_client.py')
+    print('  # Guard(mode="server"). See examples/local_sidecar_client.py')
     return 0
 
 

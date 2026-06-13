@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unplug.api.messages import ScrapeOutcome
 from unplug.config.messages import MessageConfig
-from unplug.core.asyncio_compat import run_coroutine_sync
+from unplug.core.runtime.asyncio_compat import run_coroutine_sync
 from unplug.guard import Guard
 from unplug.orchestrators.tool_output import ToolOutputOrchestrator
 from unplug.providers.content.firecrawl import FirecrawlProvider
@@ -33,7 +33,7 @@ class ScrapeOrchestrator:
         return run_coroutine_sync(self.run_async(url))
 
     async def run_async(self, url: str) -> ScrapeOutcome:
-        """Async scrape + filter — prefer in agent frameworks."""
+        """Async scrape + filter: prefer in agent frameworks."""
         scraped = await self._fetch_async(url)
         filter_result = self._filter.run(scraped.markdown)
         outcome = filter_result.outcome

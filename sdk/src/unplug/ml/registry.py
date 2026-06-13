@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unplug.core.models import ModelRegistry, NullModelProvider
+from unplug.ml.models import ModelRegistry, NullModelProvider
 from unplug.ml.providers import TransformersSpanProvider
 
 

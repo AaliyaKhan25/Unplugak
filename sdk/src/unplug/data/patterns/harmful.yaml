@@ -1,0 +1,12 @@
+- name: dangerous_instructions
+  regex: (?i)\b(how\s+to\s+(make|build|create)\s+(a\s+)?(bomb|weapon|explosive|poison))\b
+  flags: i
+- name: self_harm
+  regex: (?i)\b(suicide|self[- ]harm|kill\s+(your|my)self|end\s+(your|my)\s+life)\b
+  flags: i
+- name: illegal_activity
+  regex: (?i)\b(hack\s+into|steal\s+(credentials?|passwords?)|phishing|ransomware)\b
+  flags: i
+- name: xss_payload
+  regex: (?i)(<script\b|javascript:|onerror\s*=|onload\s*=|<iframe\b|data:text/html)
+  flags: i

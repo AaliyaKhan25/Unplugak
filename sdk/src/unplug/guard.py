@@ -1,4 +1,4 @@
-"""Guard — main entry point for Unplug."""
+"""Guard: main entry point for Unplug."""
 
 from __future__ import annotations
 
@@ -9,35 +9,36 @@ from typing import Any, ClassVar
 from unplug.api.enums import Action, Source
 from unplug.api.types import Finding, ScanRequest, ScanResult
 from unplug.client import UnplugClient
-from unplug.config.guard import GuardConfig
+from unplug.config.guard import GuardConfig, resolve_input_scanners
 from unplug.config.policy import ScanPolicy
-from unplug.core.approval import ApprovalProvider, NullApprovalProvider
-from unplug.core.boundaries import maybe_wrap_untrusted
-from unplug.core.cache import SafePrefixState, ScanCache, merge_suffix_result
-from unplug.core.canary import CanaryRegistry
+from unplug.core.agent.approval import ApprovalProvider, NullApprovalProvider
+from unplug.core.agent.boundaries import maybe_wrap_untrusted
+from unplug.core.agent.canary import CanaryRegistry
 from unplug.core.context import ExecutionContext, ToolCall
-from unplug.core.encodings import EncodingClassifier, default_encoding_classifier
 from unplug.core.judge import JudgeProvider
 from unplug.core.limits import LimitConfig, LimitViolation
-from unplug.core.logging import correlation_scope, get_logger
-from unplug.core.model_runtime import (
+from unplug.core.normalize import Normalizer
+from unplug.core.normalize.encodings import EncodingClassifier, default_encoding_classifier
+from unplug.core.policy import policy_from_request
+from unplug.core.privacy import NullPrivacyFilter, PrivacyFilterService
+from unplug.core.privacy.secrets import SecretsRegistry, SecretsSanitizer
+from unplug.core.runtime.cache import SafePrefixState, ScanCache, merge_suffix_result
+from unplug.core.runtime.logging import correlation_scope, get_logger
+from unplug.core.runtime.model_runtime import (
     load_active_model_provider,
     merge_catalog_models,
     model_cache_version,
     prepare_active_model_spec,
 )
-from unplug.core.normalize import Normalizer
-from unplug.core.policy import policy_from_request
-from unplug.core.privacy import NullPrivacyFilter, PrivacyFilterService
-from unplug.core.secrets import SecretsRegistry, SecretsSanitizer
-from unplug.core.stats import MetricsCollector
+from unplug.core.runtime.stats import MetricsCollector
+from unplug.core.runtime.versions import MODEL_VERSION_LOCAL, NORMALIZER_VERSION
 from unplug.core.taint import TaintedText, TrustLevel
-from unplug.core.versions import MODEL_VERSION_LOCAL, NORMALIZER_VERSION
+from unplug.exceptions import ConfigError
 from unplug.pipelines.input import InputPipeline
 from unplug.pipelines.output import OutputPipeline
 from unplug.pipelines.toolcall import ToolCallPipeline
-from unplug.safeguards import ScannerRegistry
-from unplug.safeguards.injection_ml import InjectionSpanScanner
+from unplug.scanners import ScannerRegistry
+from unplug.scanners.injection_ml import InjectionSpanScanner
 from unplug.streaming import StreamScanner, scan_stream
 
 _log = get_logger("guard")
@@ -85,7 +86,7 @@ def _limit_result(violation: LimitViolation, text_len: int = 0) -> ScanResult:
 
 
 class Guard:
-    """Entry point for Unplug — scans text, output, and tool calls."""
+    """Entry point for Unplug: scans text, output, and tool calls."""
 
     _instance: Guard | None = None
     _lock: ClassVar[threading.Lock] = threading.Lock()
@@ -109,6 +110,14 @@ class Guard:
         approval: ApprovalProvider | None = None,
     ) -> None:
         cfg = config or GuardConfig()
+        if fail_mode == "open":
+            import warnings
+
+            warnings.warn(
+                'fail_mode="open" is deprecated and ignored; errors always fail closed',
+                DeprecationWarning,
+                stacklevel=2,
+            )
         overrides: dict[str, Any] = {"mode": mode, "fail_closed": fail_mode == "closed"}
         if scanners is not None:
             overrides["scanners"] = scanners
@@ -147,13 +156,11 @@ class Guard:
 
         self._registry = ScannerRegistry(metrics=self._metrics)
         self._ml_provider = None
+        self._ml_degraded = False
         self._model_cache_version = MODEL_VERSION_LOCAL
 
         scanner_names = list(cfg.scanners)
-        from unplug.safeguards.yara_scanner import YaraCodeScanner
-
-        if scanners is None and YaraCodeScanner.is_available() and "yara" not in scanner_names:
-            scanner_names.append("yara")
+        self._validate_optional_scanners(scanner_names)
         if cfg.mode != "server" and cfg.active_model:
             spec = prepare_active_model_spec(cfg)
             if spec is not None:
@@ -179,6 +186,7 @@ class Guard:
                         type(exc).__name__,
                         cfg.active_model,
                     )
+                    self._ml_degraded = True
                 if provider is not None:
                     self._ml_provider = provider
                     self._model_cache_version = model_cache_version(spec)
@@ -195,6 +203,7 @@ class Guard:
                         cfg.active_model,
                         cfg.active_model,
                     )
+                    self._ml_degraded = True
 
         v2_scanners = self._registry.get_many(scanner_names, configs=cfg.scanner_configs)
         if self._ml_provider is not None:
@@ -228,6 +237,7 @@ class Guard:
             leakage_scanner=self._registry.get("leakage"),
             secrets_scanner=self._registry.get("secrets"),
             url_scanner=self._registry.get("urls"),
+            pii_scanner=self._registry.get("pii") if "pii" in cfg.scanners else None,
             config=cfg.pipeline,
             metrics=self._metrics,
             trajectory_config=cfg.trajectory,
@@ -551,6 +561,7 @@ class Guard:
         approved: bool | None = None,
     ) -> ScanResult:
         """Check a proposed tool call for destructive, taint, and financial risks."""
+        _ = approved  # resume-only via ApprovalProvider; caller flag is ignored
         if not self._limits.is_tool_allowed(tool_name):
             return _limit_result(
                 LimitViolation(
@@ -578,7 +589,7 @@ class Guard:
             tool_name=tool_name,
             arguments=arguments,
             taint_sources=taint_sources or [],
-            approved=approved,
+            approved=None,
         )
         try:
             with correlation_scope():
@@ -616,13 +627,18 @@ class Guard:
                     return self._server_client.scan_request(request)
                 ctx = self._request_context(request, isolated=isolated)
                 if request.scanners:
-                    ctx.allowed_scanners = list(request.scanners)
+                    ctx.allowed_scanners = resolve_input_scanners(
+                        list(request.scanners),
+                        strict=self._config.strict_scanner_allowlist,
+                    )
                 if not isolated:
                     self._capture_user_intent(request)
                 result = self._run_input_with_cache(request, ctx)
                 if not isolated:
                     self._maybe_mark_session_tainted_from_scan(request.source)
                 return result
+        except ConfigError:
+            raise
         except Exception as exc:
             _log.error("guard.scan_request failed: %s", exc)
             return _fail_closed(exc)
@@ -634,6 +650,32 @@ class Guard:
     @property
     def ml_model_loaded(self) -> bool:
         return self._ml_provider is not None and self._ml_provider.loaded
+
+    @property
+    def ml_degraded(self) -> bool:
+        """True when active_model is configured but ML failed to load."""
+        return self._ml_degraded
+
+    @staticmethod
+    def _validate_optional_scanners(names: list[str]) -> None:
+        from unplug.exceptions import ConfigError
+
+        if "pii" in names:
+            try:
+                from unplug.optional.presidio import get_analyzer_engine_class
+
+                get_analyzer_engine_class()
+            except ImportError as exc:
+                msg = 'pii scanner requires pip install "unplug-ai[presidio]"'
+                raise ConfigError(msg) from exc
+        if "yara" in names:
+            try:
+                from unplug.scanners.yara_loader import get_yara_rules
+
+                get_yara_rules()
+            except Exception as exc:
+                msg = 'yara scanner requires pip install "unplug-ai[yara]"'
+                raise ConfigError(msg) from exc
 
     @property
     def scanners_loaded(self) -> list[str]:

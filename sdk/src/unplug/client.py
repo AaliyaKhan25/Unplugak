@@ -2,13 +2,31 @@
 
 from __future__ import annotations
 
+import json
 import os
+import warnings
 from typing import Self
+from urllib.parse import urlparse
 
 import httpx
+from pydantic import ValidationError
 
 from unplug.api.enums import Source
 from unplug.api.types import BatchScanRequest, ScanRequest, ScanResult
+from unplug.exceptions import ServerError
+
+
+def _warn_insecure_url(url: str) -> None:
+    parsed = urlparse(url)
+    if parsed.scheme != "http":
+        return
+    host = (parsed.hostname or "").lower()
+    if host in ("localhost", "127.0.0.1", "::1"):
+        return
+    warnings.warn(
+        f"Unplug server URL uses insecure http:// ({url}); use https:// in production",
+        stacklevel=3,
+    )
 
 
 class UnplugClient:
@@ -22,6 +40,7 @@ class UnplugClient:
         timeout: float = 30.0,
     ) -> None:
         resolved_url = base_url or os.environ.get("UNPLUG_SERVER_URL", "http://localhost:8000")
+        _warn_insecure_url(resolved_url)
         resolved_key = api_key or os.environ.get("UNPLUG_API_KEY")
         headers: dict[str, str] = {}
         if resolved_key:
@@ -31,6 +50,35 @@ class UnplugClient:
             headers=headers,
             timeout=timeout,
         )
+
+    def _post_json(self, path: str, payload: dict) -> dict:
+        try:
+            response = self._client.post(path, json=payload)
+            response.raise_for_status()
+            try:
+                return response.json()
+            except json.JSONDecodeError as exc:
+                msg = f"Unplug server returned malformed JSON: {exc}"
+                raise ServerError(msg) from exc
+        except httpx.HTTPError as exc:
+            msg = f"Unplug server request failed: {type(exc).__name__}: {exc}"
+            raise ServerError(msg) from exc
+
+    def _parse_scan_result(self, data: object) -> ScanResult:
+        try:
+            return ScanResult.model_validate(data)
+        except ValidationError as exc:
+            msg = f"Unplug server returned invalid scan response: {exc}"
+            raise ServerError(msg) from exc
+
+    def _get_json(self, path: str) -> dict:
+        try:
+            response = self._client.get(path)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPError as exc:
+            msg = f"Unplug server request failed: {type(exc).__name__}: {exc}"
+            raise ServerError(msg) from exc
 
     def scan(
         self,
@@ -44,12 +92,8 @@ class UnplugClient:
         return self.scan_request(request)
 
     def scan_request(self, request: ScanRequest) -> ScanResult:
-        response = self._client.post(
-            "/v1/scan",
-            json=request.model_dump(mode="json"),
-        )
-        response.raise_for_status()
-        return ScanResult.model_validate(response.json())
+        data = self._post_json("/v1/scan", request.model_dump(mode="json"))
+        return self._parse_scan_result(data)
 
     def scan_output(
         self,
@@ -67,26 +111,26 @@ class UnplugClient:
         return self.scan_output_request(request)
 
     def scan_output_request(self, request: ScanRequest) -> ScanResult:
-        response = self._client.post(
-            "/v1/scan/output",
-            json=request.model_dump(mode="json"),
-        )
-        response.raise_for_status()
-        return ScanResult.model_validate(response.json())
+        data = self._post_json("/v1/scan/output", request.model_dump(mode="json"))
+        return self._parse_scan_result(data)
+
+    def _parse_batch_results(self, data: dict[str, object]) -> list[ScanResult]:
+        raw = data.get("results")
+        if raw is None:
+            msg = "Unplug server returned invalid batch response: missing 'results' key"
+            raise ServerError(msg)
+        if not isinstance(raw, list):
+            msg = "Unplug server returned invalid batch response: 'results' must be a list"
+            raise ServerError(msg)
+        return [self._parse_scan_result(item) for item in raw]
 
     def batch_scan(self, items: list[ScanRequest]) -> list[ScanResult]:
         request = BatchScanRequest(items=items)
-        response = self._client.post(
-            "/v1/batch",
-            json=request.model_dump(mode="json"),
-        )
-        response.raise_for_status()
-        return [ScanResult.model_validate(r) for r in response.json()["results"]]
+        data = self._post_json("/v1/batch", request.model_dump(mode="json"))
+        return self._parse_batch_results(data)
 
     def health(self) -> dict[str, object]:
-        response = self._client.get("/v1/health")
-        response.raise_for_status()
-        return response.json()
+        return self._get_json("/v1/health")
 
     def close(self) -> None:
         self._client.close()

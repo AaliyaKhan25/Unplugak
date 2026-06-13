@@ -1,0 +1,6 @@
+- name: btc_address_legacy
+  regex: \b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b
+- name: btc_address_segwit
+  regex: \bbc1[a-zA-HJ-NP-Z0-9]{25,87}\b
+- name: eth_address
+  regex: \b0x[a-fA-F0-9]{40}\b

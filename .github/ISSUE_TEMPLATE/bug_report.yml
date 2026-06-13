@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in the SDK doesn't work as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. For security vulnerabilities,
+        please do NOT open a public issue — see [SECURITY.md](../blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: unplug-ai version
+      placeholder: "0.3.0 (pip show unplug-ai)"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version and OS
+      placeholder: "3.12 on Ubuntu 24.04"
+    validations:
+      required: true
+  - type: dropdown
+    id: extras
+    attributes:
+      label: Installed extras
+      multiple: true
+      options:
+        - none (core only)
+        - ml
+        - yara
+        - presidio
+        - litellm
+        - haystack
+        - scrape
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: Smallest code snippet that reproduces the problem.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / traceback
+      render: text

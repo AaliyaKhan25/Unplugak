@@ -1,0 +1,111 @@
+# Agent-host tool intelligence: degradation, intent checks, kill-chain detection.
+
+[high_risk]
+patterns = [
+  "^exec",
+  "^shell",
+  "^bash",
+  "^run_terminal",
+  "^run_command",
+  "^terminal",
+  "^browser",
+  "^web_fetch",
+  "^web_search",
+  "^osascript",
+  "^python",
+  "^node",
+]
+
+[intent]
+benign_regex = "(?i)\\b(summarize|summary|explain|describe|what\\s+is|tell\\s+me\\s+about|translate|overview|compare|list\\s+the|how\\s+does|help\\s+me\\s+understand)\\b"
+destructive_regex = "(?i)\\b(delete|remove|drop|wipe|destroy|execute|run\\s+command|shell|write\\s+file|deploy|transfer|send\\s+money|purchase)\\b"
+
+[toolchain]
+sensitive_path_regex = "(?i)(/etc/passwd|/etc/shadow|~/.ssh/|\\.ssh/|/\\.env|\\.env|secrets/|credentials/)"
+chain_score = 0.88
+kill_chain_score = 0.95
+rapid_fire_score = 0.82
+rapid_fire_window_seconds = 10.0
+rapid_fire_threshold = 5
+
+[toolchain.read_tools]
+tools = [
+  "read",
+  "read_file",
+  "read_env",
+  "read_credentials",
+  "get_api_keys",
+  "get_secrets",
+  "get_memory",
+  "read_all",
+  "list_files",
+  "search",
+  "grep",
+  "web_fetch",
+  "web_search",
+]
+
+[toolchain.write_tools]
+tools = ["write_file", "delete_file", "move_file", "modify", "write"]
+
+[toolchain.network_tools]
+tools = [
+  "send_email",
+  "send_message",
+  "post_webhook",
+  "http_post",
+  "http_get",
+  "webhook",
+  "upload",
+]
+
+[toolchain.exec_tools]
+tools = [
+  "execute_code",
+  "run_shell",
+  "shell_exec",
+  "bash",
+  "eval",
+  "exec",
+  "run_terminal",
+]
+
+[[toolchain.suspicious_chains]]
+subcategory = "read_file_send_email"
+sequence = ["read_file", "send_email"]
+score = 0.88
+
+[[toolchain.suspicious_chains]]
+subcategory = "read_file_http_post"
+sequence = ["read_file", "http_post"]
+score = 0.88
+
+[[toolchain.suspicious_chains]]
+subcategory = "get_secrets_http"
+sequence = ["get_secrets", "http_*"]
+score = 0.88
+
+[[toolchain.suspicious_chains]]
+subcategory = "list_read_write"
+sequence = ["list_files", "read_file", "write_file"]
+score = 0.88
+
+[[toolchain.suspicious_chains]]
+subcategory = "search_read_send"
+sequence = ["search", "read", "send_*"]
+score = 0.88
+
+[[toolchain.suspicious_chains]]
+subcategory = "read_modify_write"
+sequence = ["read", "modify", "write"]
+score = 0.95
+
+[[toolchain.suspicious_chains]]
+subcategory = "search_read_execute"
+sequence = ["search", "read", "execute"]
+score = 0.95
+
+[[toolchain.suspicious_chains]]
+subcategory = "list_message_instruct"
+sequence = ["list_agents", "message_agent", "instruct_agent"]
+score = 0.95

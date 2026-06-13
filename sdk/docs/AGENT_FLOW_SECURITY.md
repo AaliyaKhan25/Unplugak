@@ -1,4 +1,4 @@
-# Agent flow security - Hermes Agent, OpenClaw, and Unplug SDK
+# Agent flow security: Hermes Agent, OpenClaw, and Unplug SDK
 
 **Updated:** 2026-06-01  
 **Scope:** Techniques for securing LLM agent *flows* (not host sandboxing). Maps external patterns to SDK hooks.
@@ -11,13 +11,13 @@
 
 | Term | Meaning |
 |------|---------|
-| **Hermes Agent** | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) - skills, context files, cron, terminal tools. Uses `threat_patterns.py` + `skills_guard`. |
+| **Hermes Agent** | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent): skills, context files, cron, terminal tools. Uses `threat_patterns.py` + `skills_guard`. |
 | **OpenClaw** | Open-source agent runtime (gateway + tools). See [OpenClaw security docs](https://docs.openclaw.ai/gateway/security). |
-| **Adaptive degradation** | SDK `[degradation]` - tighten high-risk tools after crescendo (OpenClaw blast-radius idea). |
+| **Adaptive degradation** | SDK `[degradation]`: tighten high-risk tools after crescendo (OpenClaw blast-radius idea). |
 
 ---
 
-## OpenClaw - techniques that apply to the SDK
+## OpenClaw: techniques that apply to the SDK
 
 OpenClaw separates **where tools run** (Docker sandbox), **which tools exist** (allow/deny), and **who can talk to the agent** (pairing). Only the middle layer is fully expressible inside Unplug; the rest is host responsibility.
 
@@ -30,11 +30,11 @@ OpenClaw separates **where tools run** (Docker sandbox), **which tools exist** (
 | Crescendo / multi-turn escalation | Operational guidance + monitoring | `TrajectoryConfig` + `risk_trajectory` |
 | Channel trust | DM pairing, allowlists | **Host** (not SDK) |
 | Container isolation | `sandbox.mode: all` | **Host** (Docker) |
-| Elevated exec on host | `tools.elevated` bypasses sandbox | **Host** - SDK can still REVIEW/BLOCK tool names |
+| Elevated exec on host | `tools.elevated` bypasses sandbox | **Host**: SDK can still REVIEW/BLOCK tool names |
 
 ---
 
-## Hermes Agent - techniques
+## Hermes Agent: techniques
 
 | Technique | Hermes | Unplug SDK |
 |-----------|--------|------------|
@@ -58,7 +58,7 @@ OpenClaw separates **where tools run** (Docker sandbox), **which tools exist** (
 | **Adaptive degradation** | High-risk tools blocked/reviewed after escalation | `DegradationConfig` + `degraded_tool_findings()` |
 | **Intent vs action** | Informational ask + destructive tool -> hold | `IntentConfig` |
 | **Provenance / signed segments** | Signed context envelopes (Tessera mesh) | Taint + boundary markers (not cryptographic yet) |
-| **ABSTAIN band** | Uncertain scores -> judge/redact, not hard block | Training stack (`repos/unplug_exp/lib/decision.py`); wire to SDK `Action` in a follow-up |
+| **ABSTAIN band** | Uncertain scores -> judge/redact, not hard block | Decision policy in `unplug.core.policy.decision`; wire to SDK `Action` in a follow-up |
 | **Plan-then-execute** | Lock control flow before ingesting untrusted tool data | **Host** orchestration; SDK can scan plan text as `Source.SYSTEM` |
 
 References: SafeHarness lifecycle layers (Inform / Verify / Constrain / Correct), [RiskGate / viability framework](https://arxiv.org/abs/2604.24686), [Progent monotonic policies](https://arxiv.org/pdf/2504.11703).

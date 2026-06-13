@@ -1,24 +1,24 @@
-"""Input pipeline — taint, normalize, scan, decide."""
+"""Input pipeline: taint, normalize, scan, decide."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from unplug.config.agent_policy import BoundaryConfig, DegradationConfig, TrajectoryConfig
-from unplug.core.asyncio_compat import run_coroutine_sync
-from unplug.core.boundaries import maybe_wrap_untrusted
+from unplug.core.agent.boundaries import maybe_wrap_untrusted
 from unplug.core.config import PipelineConfig
 from unplug.core.context import ExecutionContext
-from unplug.core.decision import ML_ABSTAIN_SUBCATEGORY, should_invoke_ml
-from unplug.core.encodings import EncodingClassifier, scan_encoding_blobs
 from unplug.core.judge import JudgeContext, JudgeProvider
-from unplug.core.logging import get_logger
 from unplug.core.normalize import Normalizer
-from unplug.core.stats import MetricsCollector
+from unplug.core.normalize.encodings import EncodingClassifier, scan_encoding_blobs
+from unplug.core.policy.decision import ML_ABSTAIN_SUBCATEGORY, should_invoke_ml
+from unplug.core.runtime.asyncio_compat import run_coroutine_sync
+from unplug.core.runtime.logging import get_logger
+from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText, TrustLevel, trust_level_from_source
 from unplug.models import Finding, Source
 from unplug.pipelines.base import BasePipeline
-from unplug.safeguards.base import BaseScanner
+from unplug.scanners.base import BaseScanner
 
 _log = get_logger("pipelines.input")
 
@@ -112,6 +112,14 @@ class InputPipeline(BasePipeline):
             else:
                 regex_scanners.append(scanner)
 
+        if any(
+            getattr(scanner.config, "normalize", False)
+            for scanner in (*regex_scanners, *ml_scanners)
+        ):
+            from unplug.core.normalize import cached_normalize
+
+            cached_normalize(context, self._normalizer, input_data.text, cache_key="full")
+
         for scanner in regex_scanners:
             findings.extend(scanner.scan(input_data, context))
 
@@ -140,8 +148,17 @@ class InputPipeline(BasePipeline):
         if not has_abstain and (risk < self._judge_low or risk >= self._judge_high):
             return []
         judge_ctx = JudgeContext(scanner_findings=findings)
+        policy = context.scan_policy or self._config.policy
+        judge_text = input_data.text
+        if findings:
+            from unplug.core.redaction import apply_span_redactions
+
+            judge_policy = policy.model_copy(update={"redact_threshold": 0.0})
+            redacted = apply_span_redactions(input_data.text, findings, judge_policy)
+            if redacted is not None:
+                judge_text = redacted
         try:
-            result = run_coroutine_sync(self._judge.judge(input_data.text, judge_ctx))
+            result = run_coroutine_sync(self._judge.judge(judge_text, judge_ctx))
         except Exception as exc:
             _log.error("input pipeline judge failed: %s", exc)
             return [

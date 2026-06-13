@@ -1,0 +1,36 @@
+# Default per-scanner settings: override in unplug.toml [scanners.<name>].
+
+[injection]
+base_score = 0.85
+normalize = true
+
+[injection_ml]
+base_score = 0.85
+enabled = true
+normalize = true
+
+[destructive]
+base_score = 0.90
+
+[leakage]
+base_score = 0.80
+
+[harmful]
+base_score = 0.75
+
+[financial]
+base_score = 0.70
+
+[secrets]
+base_score = 0.99
+
+[urls]
+base_score = 0.70
+
+[pii]
+base_score = 0.80
+
+[yara]
+base_score = 0.88
+enabled = true
+normalize = true

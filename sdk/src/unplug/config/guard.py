@@ -21,6 +21,33 @@ from unplug.config.messages import MessageConfig
 from unplug.config.policy import MlGateConfig, ScanPolicy
 from unplug.config.tools import ToolPolicyConfig
 
+MANDATORY_INPUT_SCANNERS: frozenset[str] = frozenset({"injection", "destructive"})
+
+
+def resolve_input_scanners(
+    requested: list[str] | None,
+    *,
+    strict: bool = False,
+) -> list[str] | None:
+    """Union mandatory input scanners; never allow dropping injection/destructive."""
+    if requested is None:
+        return None
+    omitted = MANDATORY_INPUT_SCANNERS - set(requested)
+    if omitted and strict:
+        from unplug.exceptions import ConfigError
+
+        msg = f"scan request omitted mandatory scanners: {', '.join(sorted(omitted))}"
+        raise ConfigError(msg)
+    merged = list(dict.fromkeys([*requested, *sorted(MANDATORY_INPUT_SCANNERS)]))
+    if omitted:
+        from unplug.core.runtime.logging import get_logger
+
+        get_logger("guard").warning(
+            "scan request omitted mandatory scanners %s; merged into allowlist",
+            sorted(omitted),
+        )
+    return merged
+
 
 class ThresholdConfig(BaseModel):
     """Action thresholds for deciding ALLOW/REVIEW/REDACT/BLOCK."""
@@ -64,6 +91,10 @@ class GuardConfig(BaseModel):
     scanners: list[str] = Field(
         default_factory=lambda: ["injection", "destructive", "leakage", "harmful", "urls"]
     )
+    strict_scanner_allowlist: bool = Field(
+        default=False,
+        description="Raise ConfigError when scan_request omits mandatory input scanners",
+    )
     mode: str = "local"
     server_url: str | None = None
     server_api_key: str | None = None
@@ -82,11 +113,11 @@ class GuardConfig(BaseModel):
     judge_high: float = 0.8
     models: dict[str, Any] = Field(
         default_factory=dict,
-        description="Named ModelSpec entries (see unplug.core.models.ModelSpec)",
+        description="Named ModelSpec entries (see unplug.ml.models.ModelSpec)",
     )
     active_model: str | None = Field(
         default=None,
-        description="Model tier key: tiny, medium, or large (see models/catalog.toml)",
+        description="Model tier key: tiny, medium, or large (see data/catalog.toml)",
     )
     auto_download_model: bool = Field(
         default=False,

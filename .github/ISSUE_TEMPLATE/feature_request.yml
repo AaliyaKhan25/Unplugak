@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest a new scanner, integration, or SDK capability
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that the SDK can't handle today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you like it to work? API sketches welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - scanners (injection, leakage, destructive, ...)
+        - pipelines / Guard API
+        - agent protection (tool calls, taint, boundaries)
+        - ML models
+        - integrations (frameworks, providers)
+        - other

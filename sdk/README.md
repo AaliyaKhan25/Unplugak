@@ -1,10 +1,13 @@
 # Unplug SDK
 
-**Find the attack. Cut the attack. Keep the rest.**
+**Unplug the bad AI.**
+
+Find the attack. Cut the attack. Keep the rest.
 
 Unplug is a runtime defense layer for LLM apps and agents. It tracks where every piece of text came from, scans untrusted content for prompt injection, and gates tool calls before they do damage. Attacks are redacted at the span level, so the rest of the document stays usable.
 
 <p>
+  <a href="https://github.com/UnplugAI/Unplug/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/UnplugAI/Unplug/actions/workflows/ci.yml/badge.svg?branch=dev"></a>
   <a href="https://pypi.org/project/unplug-ai/"><img alt="PyPI" src="https://img.shields.io/pypi/v/unplug-ai"></a>
   <a href="https://huggingface.co/spaces/Unplug-AI/unplug-tiny-demo"><img alt="Live demo" src="https://img.shields.io/badge/Live_demo-Hugging_Face_Space-22c55e"></a>
   <a href="https://huggingface.co/Unplug-AI/unplug-tiny-v1"><img alt="Model" src="https://img.shields.io/badge/Model-unplug--tiny--v1-f59e0b"></a>
@@ -152,6 +155,7 @@ Verify your wiring anytime:
 unplug-audit                   # wiring + ML status
 unplug-audit --probes          # FP + encoding + boundary batteries
 unplug-audit --require-ml      # fail if checkpoint / config / ML not active
+unplug-scan-pr --base-ref main # scan changed agent/MCP files in a PR (CI)
 ```
 
 | Check | Meaning |
@@ -176,16 +180,20 @@ Copy `unplug.example.toml` to `unplug.toml` to customize scanners, tool profiles
 
 Framework hooks for LangGraph and Agno, plus framework-agnostic patterns: [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
 
-Threat scanners live under `unplug.safeguards` (canonical). The older `unplug.scanners` path still works but emits deprecation warnings:
+Threat scanners live under `unplug.scanners` (canonical). The older `unplug.safeguards` path still works but emits deprecation warnings:
 
 ```python
-from unplug.safeguards.injection import InjectionScanner
-from unplug.safeguards.destructive import DestructiveScanner
-from unplug.safeguards.registry import SafeguardRegistry
+from unplug.scanners.injection import InjectionScanner
+from unplug.scanners.destructive import DestructiveScanner
+from unplug.scanners.registry import ScannerRegistry
 ```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for layering and optional extras.
 
 ## Examples
 
+- [`examples/quickstart.py`](examples/quickstart.py): minimal local Guard scan
+- [`examples/server_client.py`](examples/server_client.py): HTTP client against a running sidecar
 - [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py): hidden injection, tainted session, blocked exfil tool call
 - [`examples/langgraph_hooks_demo.py`](examples/langgraph_hooks_demo.py) and [`examples/agno_hooks_demo.py`](examples/agno_hooks_demo.py): framework hooks
 - [`examples/hosted_client.py`](examples/hosted_client.py) and [`examples/local_sidecar_client.py`](examples/local_sidecar_client.py): server modes
@@ -203,6 +211,8 @@ from unplug.safeguards.registry import SafeguardRegistry
 | [`docs/HERMES_AGENT_SECURITY.md`](docs/HERMES_AGENT_SECURITY.md) | Context-file scanning for agent frameworks |
 
 ## Development
+
+Supported Python versions: **3.11, 3.12, and 3.13** (CI matrix). On 3.13, the `ml` and `litellm` extras are skipped in CI until `tokenizers` publishes cp313 wheels; regex-only core and optional `presidio`/`yara`/`haystack` tests still run. Mark optional tests with `@pytest.mark.requires_ml`, `requires_presidio`, or `requires_yara`.
 
 ```bash
 cd sdk && uv sync --all-extras --dev

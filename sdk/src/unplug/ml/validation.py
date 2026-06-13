@@ -51,7 +51,10 @@ def resolve_validation_checkpoint(*, require_weights: bool = False) -> Path | No
                 return candidate
 
     manifest = load_ml_validation_manifest()
-    candidate = workspace_root() / str(manifest["checkpoint_relative"])
+    relative = manifest.get("checkpoint_relative")
+    if not relative:
+        return None
+    candidate = workspace_root() / str(relative)
     if is_valid_checkpoint(candidate, require_weights=require_weights):
         return candidate
     if not require_weights and is_valid_checkpoint(candidate, require_weights=False):
@@ -61,10 +64,25 @@ def resolve_validation_checkpoint(*, require_weights: bool = False) -> Path | No
 
 def resolve_thresholds_path() -> Path | None:
     manifest = load_ml_validation_manifest()
-    path = workspace_root() / str(manifest["thresholds_relative"])
+    relative = manifest.get("thresholds_relative")
+    if not relative:
+        return None
+    path = workspace_root() / str(relative)
     return path if path.is_file() else None
 
 
 def catalog_config_from_manifest() -> dict[str, Any]:
+    """Inference thresholds for the manifest tier: sourced from data/catalog.toml."""
     manifest = load_ml_validation_manifest()
-    return dict(manifest.get("catalog_config", {}))
+    tier = str(manifest.get("tier", "tiny"))
+    try:
+        from unplug.ml.catalog import load_catalog
+    except ImportError:
+        return {}
+    try:
+        entry = load_catalog().get(tier)
+    except FileNotFoundError:
+        return {}
+    if entry is None:
+        return {}
+    return dict(entry.config)

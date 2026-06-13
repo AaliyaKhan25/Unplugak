@@ -1,6 +1,5 @@
-"""Pipeline version stamps for cache invalidation."""
+"""Backward-compatible import path → unplug.core.runtime.versions."""
 
 from __future__ import annotations
 
-NORMALIZER_VERSION = "v12"
-MODEL_VERSION_LOCAL = "regex-v1"
+from unplug.core.runtime.versions import *  # noqa: F403

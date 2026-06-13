@@ -1,0 +1,9 @@
+- name: stripe_api
+  regex: (?i)\b(stripe\.(charges|paymentIntents|transfers|subscriptions)\.create)\b
+  flags: i
+- name: paypal_api
+  regex: (?i)\b(paypal\.(payment|Payout)\.create)\b
+  flags: i
+- name: wire_transfer
+  regex: (?i)\b(wire\s+transfer|bank\s+transfer|SWIFT\s+transfer|IBAN\s*[:=]\s*\S+)\b
+  flags: i

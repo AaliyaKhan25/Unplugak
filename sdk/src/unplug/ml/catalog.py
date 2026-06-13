@@ -9,9 +9,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from unplug.core.models import ModelSpec
+from unplug.ml.models import ModelSpec
 
-_CATALOG_PATH = Path(__file__).resolve().parent.parent / "models" / "catalog.toml"
+_CATALOG_PATH = Path(__file__).resolve().parent.parent / "data" / "catalog.toml"
 
 
 class CatalogTier(BaseModel):

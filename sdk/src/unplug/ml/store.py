@@ -1,7 +1,8 @@
-"""Local model cache — download once from Hugging Face, reuse forever."""
+"""Local model cache: download once from Hugging Face, reuse forever."""
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -11,10 +12,17 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from unplug.core.extras import require_extra
-from unplug.core.models import ModelSpec
 from unplug.exceptions import ConfigError
 from unplug.ml.catalog import CatalogTier, load_catalog
+from unplug.ml.models import ModelSpec
+from unplug.optional.ml import require_huggingface_hub
+
+
+def _config_digest(path: Path) -> str | None:
+    config = path / "config.json"
+    if not config.is_file():
+        return None
+    return hashlib.sha256(config.read_bytes()).hexdigest()[:16]
 
 
 def default_cache_root() -> Path:
@@ -33,6 +41,7 @@ class ModelManifest(BaseModel):
     repo_id: str
     revision: str
     path: str
+    config_digest: str | None = None
     installed_at: str = Field(default_factory=lambda: datetime.now(tz=UTC).isoformat())
 
 
@@ -68,14 +77,24 @@ class ModelStore:
         )
 
     def resolve_local_path(self, tier: str) -> Path | None:
-        """Return cached checkpoint dir if manifest + config.json exist."""
+        """Return cached checkpoint dir if manifest + config.json exist and match catalog."""
         manifest = self.read_manifest(tier)
         if manifest is None:
             return None
         ckpt = Path(manifest.path)
-        if ckpt.is_dir() and (ckpt / "config.json").is_file():
-            return ckpt
-        return None
+        if not ckpt.is_dir() or not (ckpt / "config.json").is_file():
+            return None
+
+        cat = load_catalog()
+        entry = cat.get(tier)
+        if entry is not None and manifest.revision != entry.revision:
+            return None
+
+        digest = _config_digest(ckpt)
+        if manifest.config_digest is not None and digest != manifest.config_digest:
+            return None
+
+        return ckpt
 
     def is_valid_checkpoint(self, path: Path) -> bool:
         return path.is_dir() and (path / "config.json").is_file()
@@ -98,11 +117,7 @@ class ModelStore:
             msg = f"Unknown model tier {tier!r}. Available: {', '.join(cat.tier_names())}"
             raise ConfigError(msg)
 
-        require_extra(
-            "huggingface_hub",
-            pip_extra="ml",
-            feature="Downloading models from Hugging Face Hub",
-        )
+        require_huggingface_hub()
         from huggingface_hub import snapshot_download
 
         dest = self.tier_dir(tier) / "checkpoint"
@@ -130,6 +145,7 @@ class ModelStore:
                 repo_id=tier_entry.repo_id,
                 revision=tier_entry.revision,
                 path=str(ckpt),
+                config_digest=_config_digest(ckpt),
             )
         )
         return ckpt

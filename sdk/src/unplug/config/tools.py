@@ -1,4 +1,4 @@
-"""Tool classification policy — side-effect vs read-only (CaMeL-style boundary)."""
+"""Tool classification policy: side-effect vs read-only (CaMeL-style boundary)."""
 
 from __future__ import annotations
 
@@ -7,50 +7,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-# Side-effect tools: mutate state, send messages, run commands, pay money.
-DEFAULT_SIDE_EFFECT_PATTERNS: tuple[str, ...] = (
-    r"^exec",
-    r"^shell",
-    r"^bash",
-    r"^run_terminal",
-    r"^run_command",
-    r"^terminal",
-    r"^write",
-    r"^edit",
-    r"^apply_patch",
-    r"^write_file",
-    r"^create_file",
-    r"^delete",
-    r"^remove",
-    r"^send_message",
-    r"^send_email",
-    r"^post_message",
-    r"^message_send",
-    r"^browser_click",
-    r"^browser_type",
-    r"^browser_navigate",
-    r"^pay",
-    r"^transfer",
-    r"^stripe",
-    r"^rm",
-    r"drop_table",
-    r"run_query",
-    r"db_exec",
-)
-
-# Taint-source tools: pull untrusted external content into the session.
-DEFAULT_TAINT_SOURCE_PATTERNS: tuple[str, ...] = (
-    r"^web_fetch",
-    r"^web_search",
-    r"^fetch",
-    r"^browser",
-    r"^read",
-    r"^read_file",
-    r"^grep",
-    r"^search",
-    r"^scrape",
-    r"^http",
-)
+from unplug.data.maps_loader import load_tool_patterns_map
 
 
 class ToolProfile(StrEnum):
@@ -59,52 +16,27 @@ class ToolProfile(StrEnum):
     FULL = "full"
 
 
-PROFILE_BLOCKED_PATTERNS: dict[ToolProfile, tuple[str, ...]] = {
-    ToolProfile.READONLY: DEFAULT_SIDE_EFFECT_PATTERNS,
-    ToolProfile.MESSAGING: (
-        r"^exec",
-        r"^shell",
-        r"^bash",
-        r"^run_terminal",
-        r"^run_command",
-        r"^terminal",
-        r"^write",
-        r"^edit",
-        r"^apply_patch",
-        r"^write_file",
-        r"^create_file",
-        r"^delete",
-        r"^remove",
-        r"^browser_click",
-        r"^browser_type",
-        r"^browser_navigate",
-        r"^pay",
-        r"^transfer",
-        r"^stripe",
-        r"^rm",
-        r"drop_table",
-        r"run_query",
-        r"db_exec",
-    ),
-    ToolProfile.FULL: (),
-}
+def _build_profile_pattern_maps() -> tuple[
+    dict[ToolProfile, tuple[str, ...]],
+    dict[ToolProfile, tuple[str, ...] | None],
+]:
+    data = load_tool_patterns_map()
+    blocked: dict[ToolProfile, tuple[str, ...]] = {}
+    allowed: dict[ToolProfile, tuple[str, ...] | None] = {}
+    for key, entry in data.profiles.items():
+        try:
+            profile = ToolProfile(key)
+        except ValueError:
+            continue
+        blocked[profile] = entry.blocked_patterns
+        allowed[profile] = entry.allowed_patterns
+    return blocked, allowed
 
-PROFILE_ALLOWED_PATTERNS: dict[ToolProfile, tuple[str, ...] | None] = {
-    ToolProfile.READONLY: (
-        r"^search",
-        r"^grep",
-        r"^read",
-        r"^lookup",
-        r"^scan",
-        r"^list",
-        r"^get",
-        r"^fetch",
-        r"^web_search",
-        r"^session",
-    ),
-    ToolProfile.MESSAGING: None,
-    ToolProfile.FULL: None,
-}
+
+_tool_maps = load_tool_patterns_map()
+DEFAULT_SIDE_EFFECT_PATTERNS = _tool_maps.side_effect
+DEFAULT_TAINT_SOURCE_PATTERNS = _tool_maps.taint_source
+PROFILE_BLOCKED_PATTERNS, PROFILE_ALLOWED_PATTERNS = _build_profile_pattern_maps()
 
 
 def _compile(patterns: tuple[str, ...]) -> list[re.Pattern[str]]:
@@ -152,7 +84,7 @@ class ToolPolicyConfig(BaseModel):
 
     enabled: bool = True
     session_taint_enabled: bool = True
-    tainted_side_effect_review_score: float = Field(default=0.75, ge=0.0, le=1.0)
+    tainted_side_effect_review_score: float = Field(default=0.35, ge=0.0, le=1.0)
 
     side_effect_patterns: tuple[str, ...] = DEFAULT_SIDE_EFFECT_PATTERNS
     side_effect_tools: tuple[str, ...] = Field(default_factory=tuple)
