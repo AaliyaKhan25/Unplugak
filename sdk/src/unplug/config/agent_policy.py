@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from unplug.data.maps_loader import load_agent_tools_map
+
+DEFAULT_HIGH_RISK_TOOL_PATTERNS = load_agent_tools_map().high_risk_patterns
+
 
 class BoundaryConfig(BaseModel):
     """OpenClaw-style untrusted content wrapping before scan / LLM context."""
@@ -57,20 +61,7 @@ class CollusionConfig(BaseModel):
 
 
 # OpenClaw: limit exec / browser / web when blast radius must shrink.
-DEFAULT_HIGH_RISK_TOOL_PATTERNS: tuple[str, ...] = (
-    r"^exec",
-    r"^shell",
-    r"^bash",
-    r"^run_terminal",
-    r"^run_command",
-    r"^terminal",
-    r"^browser",
-    r"^web_fetch",
-    r"^web_search",
-    r"^osascript",
-    r"^python",
-    r"^node",
-)
+# Patterns loaded from data/maps/agent_tools.toml ([high_risk]).
 
 
 class DegradationConfig(BaseModel):

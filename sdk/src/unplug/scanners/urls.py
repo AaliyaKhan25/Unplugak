@@ -15,6 +15,7 @@ from unplug.core.context import ExecutionContext
 from unplug.core.pattern_loader import load_compiled_patterns
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText, TrustLevel
+from unplug.data.maps_loader import default_scanner_config
 from unplug.models import Finding
 from unplug.scanners.base import RegexScanner
 
@@ -29,7 +30,7 @@ _SCORES: dict[str, float] = {
     "url_shortener": 0.6,
 }
 
-_DEFAULT_CONFIG = ScannerConfig(base_score=0.7)
+_DEFAULT_CONFIG = default_scanner_config("urls")
 
 
 class MaliciousUrlScanner(RegexScanner):

@@ -72,5 +72,17 @@ def resolve_thresholds_path() -> Path | None:
 
 
 def catalog_config_from_manifest() -> dict[str, Any]:
+    """Inference thresholds for the manifest tier — sourced from data/catalog.toml."""
     manifest = load_ml_validation_manifest()
-    return dict(manifest.get("catalog_config", {}))
+    tier = str(manifest.get("tier", "tiny"))
+    try:
+        from unplug.ml.catalog import load_catalog
+    except ImportError:
+        return {}
+    try:
+        entry = load_catalog().get(tier)
+    except FileNotFoundError:
+        return {}
+    if entry is None:
+        return {}
+    return dict(entry.config)

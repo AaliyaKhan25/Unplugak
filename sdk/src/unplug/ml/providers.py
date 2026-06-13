@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from unplug.core.models import ModelProvider, ModelSpec
+from unplug.ml.models import ModelProvider, ModelSpec
 from unplug.ml.span_model import SpanInferenceModel
 from unplug.ml.types import SpanPrediction
 

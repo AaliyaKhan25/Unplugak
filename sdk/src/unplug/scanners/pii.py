@@ -11,13 +11,14 @@ from unplug.core.context import ExecutionContext
 from unplug.core.pattern_loader import load_presidio_entity_map
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText, TrustLevel
+from unplug.data.maps_loader import default_scanner_config
 from unplug.models import Finding
 from unplug.optional.presidio import get_analyzer_engine_class
 from unplug.scanners.base import BaseScanner
 
 _logger = logging.getLogger("unplug.pii")
 
-_DEFAULT_CONFIG = ScannerConfig(base_score=0.80)
+_DEFAULT_CONFIG = default_scanner_config("pii")
 _MIN_SCORE = 0.35
 
 

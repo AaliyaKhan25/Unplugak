@@ -82,7 +82,7 @@ class GuardConfig(BaseModel):
     judge_high: float = 0.8
     models: dict[str, Any] = Field(
         default_factory=dict,
-        description="Named ModelSpec entries (see unplug.core.models.ModelSpec)",
+        description="Named ModelSpec entries (see unplug.ml.models.ModelSpec)",
     )
     active_model: str | None = Field(
         default=None,

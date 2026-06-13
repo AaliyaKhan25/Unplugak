@@ -19,6 +19,7 @@ from unplug.core.policy.decision import (
 from unplug.core.policy.disposition import DispositionLabel, resolve_disposition
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText
+from unplug.data.maps_loader import default_scanner_config
 from unplug.ml.document_chunks import (
     merge_window_predictions,
     should_chunk_document,
@@ -29,7 +30,7 @@ from unplug.models import Finding
 from unplug.scanners.base import ModelScanner
 from unplug.scanners.harmful import harmful_signal
 
-_DEFAULT_CONFIG = ScannerConfig(base_score=0.85, enabled=True, normalize=True)
+_DEFAULT_CONFIG = default_scanner_config("injection_ml")
 
 # Defaults — override via ModelSpec.config (head_tail_enabled, head_tail_threshold_chars, …).
 _DEFAULT_HEAD_TAIL_THRESHOLD = 8192

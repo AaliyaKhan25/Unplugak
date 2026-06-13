@@ -12,6 +12,7 @@ from unplug.core.privacy.luhn import luhn_valid
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.secret_patterns import leakage_patterns
 from unplug.core.taint import TaintedText, TrustLevel
+from unplug.data.maps_loader import default_scanner_config
 from unplug.models import Finding
 from unplug.scanners.base import RegexScanner
 
@@ -20,7 +21,7 @@ _LEAKAGE_NORMALIZE_STAGES = EVASION_ONLY_STAGES
 
 LEAKAGE_PATTERNS: list[tuple[str, re.Pattern[str]]] = leakage_patterns()
 
-_DEFAULT_CONFIG = ScannerConfig(base_score=0.80)
+_DEFAULT_CONFIG = default_scanner_config("leakage")
 
 
 class LeakageScanner(RegexScanner):

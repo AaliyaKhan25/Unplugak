@@ -11,12 +11,13 @@ from unplug.core.normalize import Normalizer
 from unplug.core.pattern_loader import load_compiled_patterns
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText, TrustLevel
+from unplug.data.maps_loader import default_scanner_config
 from unplug.models import Finding
 from unplug.scanners.base import RegexScanner
 
 _PATTERNS: list[tuple[str, re.Pattern[str]]] = list(load_compiled_patterns("harmful.yaml"))
 
-_DEFAULT_CONFIG = ScannerConfig(base_score=0.75)
+_DEFAULT_CONFIG = default_scanner_config("harmful")
 
 
 def harmful_signal(normalized_text: str) -> float:

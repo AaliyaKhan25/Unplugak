@@ -11,6 +11,7 @@ from unplug.core.normalize import EVASION_ONLY_STAGES, Normalizer, NormalizeResu
 from unplug.core.pattern_loader import load_compiled_patterns
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText, TrustLevel
+from unplug.data.maps_loader import default_scanner_config
 from unplug.models import Finding
 from unplug.scanners.base import BaseScanner
 
@@ -25,7 +26,7 @@ _AMOUNT_PATTERN = re.compile(
     r"(?i)\b(send|transfer|pay|withdraw|deposit)\s+\$?\s*([\d,]+\.?\d*)\s*(USD|EUR|GBP|BTC|ETH|SOL)?\b"
 )
 
-_DEFAULT_CONFIG = ScannerConfig(base_score=0.70)
+_DEFAULT_CONFIG = default_scanner_config("financial")
 
 
 def _parse_amount(raw: str) -> float:

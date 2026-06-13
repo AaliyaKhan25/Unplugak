@@ -118,7 +118,7 @@ def _build_scanner_configs(data: dict[str, Any]) -> dict[str, ScannerConfig]:
 
 
 def _build_models(data: dict[str, Any]) -> dict[str, Any]:
-    from unplug.core.models import ModelSpec
+    from unplug.ml.models import ModelSpec
 
     models: dict[str, ModelSpec] = {}
     for name, cfg in data.items():

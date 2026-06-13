@@ -25,17 +25,30 @@ def test_manifest_exists_and_parses() -> None:
     assert path.is_file()
     data = load_ml_validation_manifest()
     assert data["tier"] == "tiny"
-    assert data["catalog_config"]["inj_threshold"] == 0.45
-    assert data["catalog_config"]["doc_threshold"] == 0.9
+    assert "required_files" in data
+    assert "catalog_config" not in data
 
 
-def test_catalog_toml_matches_manifest_thresholds() -> None:
+def test_catalog_config_from_manifest_matches_catalog() -> None:
     manifest = catalog_config_from_manifest()
     cat = load_catalog()
     tiny = cat.tiers["tiny"]
     assert tiny.config["inj_threshold"] == manifest["inj_threshold"]
     assert tiny.config["doc_threshold"] == manifest["doc_threshold"]
     assert tiny.config["max_length"] == manifest["max_length"]
+
+
+def test_catalog_config_from_manifest_missing_catalog_returns_empty(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    missing = tmp_path / "missing-catalog.toml"
+
+    def _missing_catalog() -> None:
+        raise FileNotFoundError(f"Model catalog not found: {missing}")
+
+    monkeypatch.setattr("unplug.ml.catalog.load_catalog", _missing_catalog)
+    assert catalog_config_from_manifest() == {}
 
 
 def test_resolve_checkpoint_without_weights() -> None:

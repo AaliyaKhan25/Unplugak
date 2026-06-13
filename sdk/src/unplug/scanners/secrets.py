@@ -9,10 +9,11 @@ from unplug.core.config import ScannerConfig
 from unplug.core.context import ExecutionContext
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText
+from unplug.data.maps_loader import default_scanner_config
 from unplug.models import Finding
 from unplug.scanners.base import BaseScanner
 
-_DEFAULT_CONFIG = ScannerConfig(base_score=0.99)
+_DEFAULT_CONFIG = default_scanner_config("secrets")
 
 
 class SecretsScanner(BaseScanner):

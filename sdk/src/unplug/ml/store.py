@@ -11,9 +11,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from unplug.core.models import ModelSpec
 from unplug.exceptions import ConfigError
 from unplug.ml.catalog import CatalogTier, load_catalog
+from unplug.ml.models import ModelSpec
 from unplug.optional.ml import require_huggingface_hub
 
 

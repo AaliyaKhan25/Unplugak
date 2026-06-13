@@ -8,6 +8,8 @@ import unicodedata
 
 from pydantic import BaseModel, Field
 
+from unplug.data.maps_loader import load_normalize_maps
+
 _MAX_BASE64_DECODED_SIZE = 10_000  # 10KB max per decoded chunk
 
 
@@ -36,57 +38,11 @@ class NormalizeResult(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
 
-_LEET_MAP: dict[str, str] = {
-    "3": "e",
-    "4": "a",
-    "0": "o",
-    "1": "i",
-    "5": "s",
-    "7": "t",
-    "@": "a",
-}
-
-_ZERO_WIDTH_CHARS = set("​‌‍﻿⁠­")
-
-_HOMOGLYPH_MAP: dict[str, str] = {
-    "а": "a",  # Cyrillic а
-    "е": "e",  # Cyrillic е
-    "о": "o",  # Cyrillic о
-    "р": "p",  # Cyrillic р
-    "с": "c",  # Cyrillic с
-    "у": "y",  # Cyrillic у (maps to y in visual context)
-    "х": "x",  # Cyrillic х
-    "і": "i",  # Cyrillic і
-    "ј": "j",  # Cyrillic ј
-    "һ": "h",  # Cyrillic һ
-    "А": "A",  # Cyrillic А
-    "В": "B",  # Cyrillic В
-    "Е": "E",  # Cyrillic Е
-    "К": "K",  # Cyrillic К
-    "М": "M",  # Cyrillic М
-    "Н": "H",  # Cyrillic Н
-    "О": "O",  # Cyrillic О
-    "Р": "P",  # Cyrillic Р
-    "С": "C",  # Cyrillic С
-    "Т": "T",  # Cyrillic Т
-    "Х": "X",  # Cyrillic Х
-    "Ͱ": "A",  # Greek Ά (approximate)
-    "Α": "A",  # Greek Α
-    "Β": "B",  # Greek Β
-    "Ε": "E",  # Greek Ε
-    "Η": "H",  # Greek Η
-    "Ι": "I",  # Greek Ι
-    "Κ": "K",  # Greek Κ
-    "Μ": "M",  # Greek Μ
-    "Ν": "N",  # Greek Ν
-    "Ο": "O",  # Greek Ο
-    "Ρ": "P",  # Greek Ρ
-    "Τ": "T",  # Greek Τ
-    "Υ": "Y",  # Greek Υ
-    "Χ": "X",  # Greek Χ
-    "α": "a",  # Greek α (visually similar)
-    "ο": "o",  # Greek ο
-}
+_normalize_maps = load_normalize_maps()
+_LEET_MAP: dict[str, str] = _normalize_maps.leet
+_ZERO_WIDTH_CHARS = set(_normalize_maps.zero_width_chars)
+_HOMOGLYPH_MAP: dict[str, str] = _normalize_maps.homoglyphs
+_OVERRIDE_VERBS: dict[str, str] = _normalize_maps.override_verbs
 
 _ENCLOSED_MAP: dict[str, str] = {}
 
@@ -105,42 +61,6 @@ def _build_enclosed_map() -> None:
 
 
 _build_enclosed_map()
-
-_OVERRIDE_VERBS: dict[str, str] = {
-    # Spanish
-    "ignorar": "ignore",
-    "olvidar": "forget",
-    "descartar": "disregard",
-    "anular": "override",
-    "saltear": "bypass",
-    # French
-    "ignorer": "ignore",
-    "oublier": "forget",
-    "contourner": "bypass",
-    "remplacer": "override",
-    # German
-    "ignorieren": "ignore",
-    "vergessen": "forget",
-    "umgehen": "bypass",
-    "überschreiben": "override",
-    # Portuguese (ignorar shared with Spanish)
-    "esquecer": "forget",
-    "contornar": "bypass",
-    "substituir": "override",
-    # Italian
-    "ignorare": "ignore",
-    "dimenticare": "forget",
-    "aggirare": "bypass",
-    "sostituire": "override",
-    # Japanese romaji
-    "mushi": "ignore",
-    "wasureru": "forget",
-    "kaihi": "bypass",
-    # Chinese pinyin
-    "hulue": "ignore",
-    "wangji": "forget",
-    "raoguo": "bypass",
-}
 
 _OVERRIDE_PATTERN = re.compile(
     r"\b(" + "|".join(re.escape(v) for v in _OVERRIDE_VERBS) + r")\b",

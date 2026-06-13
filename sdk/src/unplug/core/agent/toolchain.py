@@ -9,57 +9,27 @@ from dataclasses import dataclass, field
 
 from unplug.config.agent_policy import ToolChainConfig
 from unplug.core.context import ExecutionContext, ToolCall
+from unplug.data.maps_loader import load_agent_tools_map
 from unplug.models import Finding
 
-_READ_TOOLS = frozenset(
-    {
-        "read",
-        "read_file",
-        "read_env",
-        "read_credentials",
-        "get_api_keys",
-        "get_secrets",
-        "get_memory",
-        "read_all",
-        "list_files",
-        "search",
-        "grep",
-        "web_fetch",
-        "web_search",
-    }
-)
-_WRITE_TOOLS = frozenset({"write_file", "delete_file", "move_file", "modify", "write"})
-_NETWORK_TOOLS = frozenset(
-    {
-        "send_email",
-        "send_message",
-        "post_webhook",
-        "http_post",
-        "http_get",
-        "webhook",
-        "upload",
-    }
-)
-_EXEC_TOOLS = frozenset(
-    {
-        "execute_code",
-        "run_shell",
-        "shell_exec",
-        "bash",
-        "eval",
-        "exec",
-        "run_terminal",
-    }
-)
-_SENSITIVE_PATH = re.compile(
-    r"(?i)(/etc/passwd|/etc/shadow|~/.ssh/|\.ssh/|/\.env|\.env|secrets/|credentials/)",
-)
+_agent_maps = load_agent_tools_map()
+_toolchain = _agent_maps.toolchain
 
-_CHAIN_SCORE = 0.88
-_KILL_CHAIN_SCORE = 0.95
-_RAPID_FIRE_SCORE = 0.82
-_RAPID_FIRE_WINDOW_S = 10.0
-_RAPID_FIRE_THRESHOLD = 5
+_READ_TOOLS = _toolchain.read_tools
+_WRITE_TOOLS = _toolchain.write_tools
+_NETWORK_TOOLS = _toolchain.network_tools
+_EXEC_TOOLS = _toolchain.exec_tools
+_SENSITIVE_PATH = re.compile(_toolchain.sensitive_path_regex)
+
+_CHAIN_SCORE = _toolchain.chain_score
+_KILL_CHAIN_SCORE = _toolchain.kill_chain_score
+_RAPID_FIRE_SCORE = _toolchain.rapid_fire_score
+_RAPID_FIRE_WINDOW_S = _toolchain.rapid_fire_window_seconds
+_RAPID_FIRE_THRESHOLD = _toolchain.rapid_fire_threshold
+
+_SUSPICIOUS_CHAINS: list[tuple[str, list[str], float]] = [
+    (entry.subcategory, list(entry.sequence), entry.score) for entry in _toolchain.suspicious_chains
+]
 
 
 def _normalize_tool(name: str) -> str:
@@ -126,22 +96,7 @@ def toolchain_findings(
     chain = [*history, current]
     findings: list[Finding] = []
 
-    suspicious_chains: list[tuple[str, list[str], float]] = [
-        ("read_file_send_email", ["read_file", "send_email"], _CHAIN_SCORE),
-        ("read_file_http_post", ["read_file", "http_post"], _CHAIN_SCORE),
-        ("get_secrets_http", ["get_secrets", "http_*"], _CHAIN_SCORE),
-        ("list_read_write", ["list_files", "read_file", "write_file"], _CHAIN_SCORE),
-        ("search_read_send", ["search", "read", "send_*"], _CHAIN_SCORE),
-        ("read_modify_write", ["read", "modify", "write"], _KILL_CHAIN_SCORE),
-        ("search_read_execute", ["search", "read", "execute"], _KILL_CHAIN_SCORE),
-        (
-            "list_message_instruct",
-            ["list_agents", "message_agent", "instruct_agent"],
-            _KILL_CHAIN_SCORE,
-        ),
-    ]
-
-    for subcategory, pattern, score in suspicious_chains:
+    for subcategory, pattern, score in _SUSPICIOUS_CHAINS:
         if _contains_sequence(chain, pattern):
             findings.append(
                 Finding(
