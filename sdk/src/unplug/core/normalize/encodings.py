@@ -8,7 +8,11 @@ from typing import TYPE_CHECKING, Protocol
 
 from unplug.api.types import Finding
 from unplug.core.normalize.normalize import _MAX_BASE64_DECODED_SIZE, Normalizer
-from unplug.scanners.injection.patterns import INJECTION_PATTERNS
+from unplug.core.pattern_loader import injection_patterns
+
+# Core-owned injection patterns (same data the injection scanner loads), imported
+# directly from the loader so core/ never depends on scanners/ (layering rule).
+INJECTION_PATTERNS = injection_patterns()
 
 if TYPE_CHECKING:
     from unplug.core.models import ModelProvider
@@ -147,7 +151,7 @@ def iter_base64_blobs(text: str, *, max_blobs: int = 5) -> list[EncodingBlob]:
             if len(decoded_bytes) > _MAX_BASE64_DECODED_SIZE:
                 continue
             decoded = decoded_bytes.decode("utf-8")
-        except Exception:
+        except Exception:  # noqa: S112 - malformed/non-base64 blob: skip silently
             continue
         if not _is_plausible_decoded_payload(decoded):
             continue

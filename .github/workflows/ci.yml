@@ -41,6 +41,9 @@ jobs:
             uv sync --all-extras --dev
           fi
 
+      - name: Type check (mypy)
+        run: make typecheck
+
       - name: CI gate (make check-ci; docker E2E is local-only)
         env:
           RUN_DOCKER_E2E: ""
