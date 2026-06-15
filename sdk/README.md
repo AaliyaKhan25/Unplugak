@@ -110,7 +110,7 @@ Wire Unplug into any agent that fetches external content or calls tools:
 
 Context files (AGENTS.md and similar): `guard.scan_context_file(text, filename="AGENTS.md")` before loading into the system prompt.
 
-Full walkthrough: [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py) shows a hidden webpage injection leading to a tainted session and a blocked exfil tool call.
+Full walkthrough: [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py) shows a hidden webpage injection leading to a tainted session, an exfil tool call held for review, and a destructive call blocked — see [`agent_exfil_demo.txt`](examples/agent_exfil_demo.txt) for sample output.
 
 ## Long documents and streams
 
