@@ -56,6 +56,12 @@ def main() -> None:
     if args.limit:
         samples = samples[: args.limit]
 
+    # ML reuses one loaded guard with a fresh context per sample. A per-sample
+    # guard rebuild would reload the model every time, so --ml implies isolated
+    # request mode -- this also prevents silently falling back to a regex-only
+    # Guard() (which would report regex numbers under an --ml run).
+    isolated = args.isolated or args.ml
+
     guard = None
     if args.ml:
         from unplug import Guard
@@ -65,15 +71,15 @@ def main() -> None:
 
     print(
         f"Evaluating {len(samples)} samples (threshold={args.threshold}, ml={args.ml}, "
-        f"isolated={args.isolated})...",
+        f"isolated={isolated})...",
         file=sys.stderr,
     )
     result = evaluate(
         samples,
         guard=guard,
         threshold=args.threshold,
-        isolated_requests=args.isolated,
-        isolate_sessions=not args.isolated,
+        isolated_requests=isolated,
+        isolate_sessions=not isolated,
     )
 
     if args.format == "json":

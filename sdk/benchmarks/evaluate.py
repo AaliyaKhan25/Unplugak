@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 
 from benchmarks.loader import Sample
 from unplug import Guard
+from unplug.api.enums import Source
+from unplug.api.types import ScanRequest
 from unplug.models import ScanResult
 
 
@@ -92,18 +94,23 @@ def run_sample(guard: Guard, sample: Sample, *, isolated: bool = False) -> ScanR
     """
     pipeline = sample.metadata.get("pipeline", "input")
     if pipeline == "output":
+        if isolated:
+            return guard.scan_output_request(
+                ScanRequest(text=sample.text, source=Source.TOOL_OUTPUT), isolated=True
+            )
         return guard.scan_output(sample.text)
     if pipeline == "toolcall":
         tool_name = sample.metadata.get("tool_name", "unknown")
         tool_args = sample.metadata.get("tool_args", {"cmd": sample.text})
         agent_id = sample.metadata.get("agent_id")
+        if isolated:
+            # Tool-call checks are inherently stateful (taint, toolchain history);
+            # reset cross-sample security state so isolated samples stay independent.
+            guard.reset_session_taint()
         if agent_id:
             guard.context.agent_id = str(agent_id)
         return guard.check_tool_call(tool_name, tool_args)
     if isolated:
-        from unplug.api.enums import Source
-        from unplug.api.types import ScanRequest
-
         return guard.scan_request(ScanRequest(text=sample.text, source=Source.USER), isolated=True)
     return guard.scan(sample.text)
 
