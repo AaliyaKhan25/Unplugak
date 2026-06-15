@@ -84,7 +84,14 @@ Reproduce (downloads `unplug-tiny-v1` from Hugging Face on first ML run):
 ```bash
 cd sdk && uv sync --all-extras --dev
 uv run python -m benchmarks.download --dataset all --out benchmarks/data
+
+# regex-only baseline (table rows 1 and 3)
+uv run python -m benchmarks.run benchmarks/data/neuralchemy.jsonl --isolated --format json
+uv run python -m benchmarks.run benchmarks/data/microsoft_indirect.jsonl --isolated --format json
+
+# regex + ML (rows 2 and 4; downloads unplug-tiny-v1 on first run)
 uv run python -m benchmarks.run benchmarks/data/neuralchemy.jsonl --ml --isolated --format json
+uv run python -m benchmarks.run benchmarks/data/microsoft_indirect.jsonl --ml --isolated --format json
 ```
 
 Full methodology, per-dataset tables, and honest caveats: [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
