@@ -13,7 +13,9 @@ backend = "transformers_span"
 description = "Default dual-head span injection model (DeBERTa-v3-xsmall)"
 
 [catalog.tiers.tiny.config]
-inj_threshold = 0.45
+# inj_threshold tuned to 0.60 — the recall/FPR knee measured on neuralchemy plus
+# a clean benign corpus (recall ~0.97 at ~1% benign false positives, vs ~2% at 0.45).
+inj_threshold = 0.60
 doc_threshold = 0.9
 tau_abstain_low = 0.35
 abstain_enabled = true

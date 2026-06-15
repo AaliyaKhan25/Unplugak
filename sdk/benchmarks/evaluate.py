@@ -83,8 +83,13 @@ def _default_guard_factory() -> Guard:
     return Guard()
 
 
-def run_sample(guard: Guard, sample: Sample) -> ScanResult:
-    """Route a sample to the correct Guard pipeline based on metadata."""
+def run_sample(guard: Guard, sample: Sample, *, isolated: bool = False) -> ScanResult:
+    """Route a sample to the correct Guard pipeline based on metadata.
+
+    With ``isolated=True`` input samples run in a fresh ExecutionContext
+    (``scan_request(isolated=True)``) so multi-turn trajectory state does not
+    leak between independent single-turn samples.
+    """
     pipeline = sample.metadata.get("pipeline", "input")
     if pipeline == "output":
         return guard.scan_output(sample.text)
@@ -95,6 +100,11 @@ def run_sample(guard: Guard, sample: Sample) -> ScanResult:
         if agent_id:
             guard.context.agent_id = str(agent_id)
         return guard.check_tool_call(tool_name, tool_args)
+    if isolated:
+        from unplug.api.enums import Source
+        from unplug.api.types import ScanRequest
+
+        return guard.scan_request(ScanRequest(text=sample.text, source=Source.USER), isolated=True)
     return guard.scan(sample.text)
 
 
@@ -105,6 +115,7 @@ def evaluate(
     *,
     isolate_sessions: bool = True,
     guard_factory: Callable[[], Guard] | None = None,
+    isolated_requests: bool = False,
 ) -> EvalResult:
     """Run all samples through the Guard and compute metrics.
 
@@ -118,7 +129,11 @@ def evaluate(
             ``isolate_sessions`` is True. Defaults to ``Guard()``.
     """
     factory = guard_factory or _default_guard_factory
-    shared = None if isolate_sessions else (guard or factory())
+    # isolated_requests reuses one guard (model loads once) but gives each sample a
+    # fresh ExecutionContext via scan_request(isolated=True); it overrides the
+    # per-sample guard rebuild of isolate_sessions.
+    use_shared = isolated_requests or not isolate_sessions
+    shared = (guard or factory()) if use_shared else None
 
     result = EvalResult()
     start = time.perf_counter()
@@ -131,11 +146,11 @@ def evaluate(
             result.by_category[cat] = CategoryMetrics()
         cat_metrics = result.by_category[cat]
 
-        active = factory() if isolate_sessions else shared
+        active = shared if use_shared else factory()
         assert active is not None
 
         scan_start = time.perf_counter()
-        scan_result = run_sample(active, sample)
+        scan_result = run_sample(active, sample, isolated=isolated_requests)
         latency = (time.perf_counter() - scan_start) * 1000
 
         detected = scan_result.risk_score >= threshold
