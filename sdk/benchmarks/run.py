@@ -28,6 +28,16 @@ def main() -> None:
     parser.add_argument("--label-col", default="label", help="Column name for label")
     parser.add_argument("--category-col", default="category", help="Column name for category")
     parser.add_argument("--limit", type=int, default=None, help="Max samples to evaluate")
+    parser.add_argument(
+        "--ml",
+        action="store_true",
+        help="Use Guard.with_tiny() (ML second-pass) instead of regex-only",
+    )
+    parser.add_argument(
+        "--isolated",
+        action="store_true",
+        help="Scan each sample in a fresh context (single-turn; no trajectory leakage)",
+    )
 
     args = parser.parse_args()
 
@@ -46,8 +56,31 @@ def main() -> None:
     if args.limit:
         samples = samples[: args.limit]
 
-    print(f"Evaluating {len(samples)} samples (threshold={args.threshold})...", file=sys.stderr)
-    result = evaluate(samples, threshold=args.threshold)
+    # ML reuses one loaded guard with a fresh context per sample. A per-sample
+    # guard rebuild would reload the model every time, so --ml implies isolated
+    # request mode -- this also prevents silently falling back to a regex-only
+    # Guard() (which would report regex numbers under an --ml run).
+    isolated = args.isolated or args.ml
+
+    guard = None
+    if args.ml:
+        from unplug import Guard
+
+        print("Loading Guard.with_tiny() (ML)...", file=sys.stderr)
+        guard = Guard.with_tiny(require_ml=True)
+
+    print(
+        f"Evaluating {len(samples)} samples (threshold={args.threshold}, ml={args.ml}, "
+        f"isolated={isolated})...",
+        file=sys.stderr,
+    )
+    result = evaluate(
+        samples,
+        guard=guard,
+        threshold=args.threshold,
+        isolated_requests=isolated,
+        isolate_sessions=not isolated,
+    )
 
     if args.format == "json":
         print(json.dumps(result.to_dict(), indent=2))
