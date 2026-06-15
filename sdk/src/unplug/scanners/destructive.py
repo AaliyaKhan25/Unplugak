@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Generator
 
-from unplug.core.config import ScannerConfig
+from unplug.config.guard import ScannerConfig
 from unplug.core.context import ExecutionContext
 from unplug.core.normalize import Normalizer, cached_normalize
 from unplug.core.pattern_loader import load_compiled_patterns

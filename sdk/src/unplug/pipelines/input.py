@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from unplug.config.agent_policy import BoundaryConfig, DegradationConfig, TrajectoryConfig
+from unplug.config.guard import PipelineConfig
 from unplug.core.agent.boundaries import maybe_wrap_untrusted
-from unplug.core.config import PipelineConfig
 from unplug.core.context import ExecutionContext
 from unplug.core.judge import JudgeContext, JudgeProvider
 from unplug.core.normalize import Normalizer

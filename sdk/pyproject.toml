@@ -193,6 +193,7 @@ filterwarnings = [
     "ignore:builtin type SwigPyPacked:DeprecationWarning",
     "ignore:builtin type SwigPyObject:DeprecationWarning",
     "ignore:unplug.safeguards:DeprecationWarning",
+    "ignore:unplug.core.:DeprecationWarning",
 ]
 
 [project.scripts]

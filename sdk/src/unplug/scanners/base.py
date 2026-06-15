@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Generator
 from typing import ClassVar, Protocol, runtime_checkable
 
-from unplug.core.config import ScannerConfig
+from unplug.config.guard import ScannerConfig
 from unplug.core.context import ExecutionContext
 from unplug.core.runtime.logging import get_logger
 from unplug.core.runtime.stats import MetricsCollector

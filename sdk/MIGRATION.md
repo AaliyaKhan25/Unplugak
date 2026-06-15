@@ -34,12 +34,12 @@ in any release).
   `unplug-server` imports it from `guard_scan`; that import moves to `api.results`
   **after the next SDK release** (the server installs the published SDK, which must
   contain `api.results` first).
-- The flat `core.*` shims do **not** all emit a `DeprecationWarning` yet; this guide
-  is the source of truth for the removal plan. Per-shim runtime warnings are deferred
-  on purpose: `unplug-server`/`unplug-mcp` still import a few flat shims
-  (`core.boundaries`, `core.cache`, `core.encodings`, `core.versions`), so the
-  warnings land cleanly only after those sibling imports move to the canonical
-  subpackages — otherwise our own services emit deprecation noise.
+- The flat `core.*` shims now emit a `DeprecationWarning` on import. SDK-internal
+  code uses the canonical subpackages, so normal use (`import unplug; Guard()`)
+  emits no warning. `unplug-server`/`unplug-mcp` are migrated off the few flat shims
+  they used (`core.boundaries`, `core.cache`, `core.encodings`, `core.versions`) in
+  lockstep. The canonical subpackages (`core.taint`, `core.policy`, `core.privacy`,
+  `core.normalize`, `core.agent`, `core.runtime`, `core.context`) are **not** shims.
 
 ## Removal timeline
 

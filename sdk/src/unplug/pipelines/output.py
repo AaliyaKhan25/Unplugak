@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from unplug.config.agent_policy import BoundaryConfig, DegradationConfig, TrajectoryConfig
+from unplug.config.guard import PipelineConfig
 from unplug.config.policy import ScanPolicy
 from unplug.core.agent.boundaries import strip_boundary_markers
-from unplug.core.config import PipelineConfig
 from unplug.core.context import ExecutionContext
 from unplug.core.privacy.secrets import SecretsSanitizer
 from unplug.core.runtime.stats import MetricsCollector

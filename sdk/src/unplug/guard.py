@@ -10,13 +10,13 @@ from unplug.api.enums import Action, Source
 from unplug.api.types import Finding, ScanRequest, ScanResult
 from unplug.client import UnplugClient
 from unplug.config.guard import GuardConfig, resolve_input_scanners
+from unplug.config.limits import LimitConfig, LimitViolation
 from unplug.config.policy import MlGateConfig, ScanPolicy
 from unplug.core.agent.approval import ApprovalProvider, NullApprovalProvider
 from unplug.core.agent.boundaries import maybe_wrap_untrusted
 from unplug.core.agent.canary import CanaryRegistry
 from unplug.core.context import ExecutionContext, ToolCall
 from unplug.core.judge import JudgeProvider
-from unplug.core.limits import LimitConfig, LimitViolation
 from unplug.core.normalize import Normalizer
 from unplug.core.normalize.encodings import EncodingClassifier, default_encoding_classifier
 from unplug.core.policy import policy_from_request
