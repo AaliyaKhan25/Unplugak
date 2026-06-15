@@ -48,11 +48,21 @@ def _banner(title: str) -> None:
 
 
 def _inner(redacted: str | None) -> str:
-    """Strip the provenance boundary wrapper, leaving just the content."""
+    """Return just the content inside the untrusted-source boundary.
+
+    Parses the ``wrap_for_context`` provenance wrapper, whose body sits between
+    ``\\n---\\n`` fences. If that format ever changes, fall back to the full
+    text rather than crashing the demo.
+    """
     if not redacted:
         return ""
     parts = redacted.split("\n---\n")
     return parts[1] if len(parts) >= 3 else redacted
+
+
+def _stopped(result: ScanResult) -> bool:
+    """True if the call is not silently executed: blocked or held for review."""
+    return result.action in (Action.BLOCK, Action.REVIEW) or not result.safe
 
 
 def main() -> int:
@@ -81,13 +91,20 @@ def main() -> int:
         f"risk={fetch_result.risk_score:.2f}  safe={fetch_result.safe}"
     )
     print("      Evidence -- what was caught, and exactly where:")
-    for finding in fetch_result.findings[:3]:
-        snippet = wrapped[finding.span_start : finding.span_end]
-        print(f"        - {finding.category}/{finding.subcategory}  score {finding.score:.2f}")
-        print(f"          span: {snippet[:70]!r}")
+    if fetch_result.findings:
+        for finding in fetch_result.findings[:3]:
+            snippet = wrapped[finding.span_start : finding.span_end]
+            print(f"        - {finding.category}/{finding.subcategory}  score {finding.score:.2f}")
+            print(f"          span: {snippet[:70]!r}")
+    else:
+        print("        (no findings)")
     print("      Find the attack. Cut the attack. Keep the rest:")
-    for line in _inner(fetch_result.redacted_text).splitlines():
-        print(f"        | {line}")
+    clean = _inner(fetch_result.redacted_text)
+    if clean:
+        for line in clean.splitlines():
+            print(f"        | {line}")
+    else:
+        print("        (redaction disabled; nothing to show)")
 
     guard.notify_taint_source("web_fetch")
     tainted = guard.context.is_session_tainted
@@ -130,11 +147,6 @@ def main() -> int:
     _banner("FAIL: an attack slipped through")
     print(f"exfil_stopped={exfil_stopped}  shell_stopped={shell_stopped}")
     return 1
-
-
-def _stopped(result: ScanResult) -> bool:
-    """True if the call is not silently executed: blocked or held for review."""
-    return result.action in (Action.BLOCK, Action.REVIEW) or not result.safe
 
 
 if __name__ == "__main__":
