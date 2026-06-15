@@ -56,3 +56,11 @@ class TestCiGate:
         assert passed, report
         assert report["converter_matrix"]["passed"]
         assert not report["garak_corpus"]["shortfalls"]
+
+    def test_gate_enforces_benign_fpr_ceiling(self) -> None:
+        _, report = run_gate()
+        benign = report["benign_fpr"]
+        assert "missing" not in benign, "benign corpus must be committed"
+        assert benign["samples"] > 0
+        assert benign["ok"], benign
+        assert benign["fpr"] <= benign["ceiling"]
