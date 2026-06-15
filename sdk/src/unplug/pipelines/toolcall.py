@@ -151,7 +151,7 @@ class ToolCallPipeline(BasePipeline):
                 span_end=0,
                 score=score,
                 evidence=(
-                    f"Side-effect tool '{tool_call.tool_name}' blocked for review: "
+                    f"Side-effect tool '{tool_call.tool_name}' held for review: "
                     f"session tainted ({triggers})"
                 ),
             )

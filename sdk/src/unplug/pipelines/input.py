@@ -143,6 +143,8 @@ class InputPipeline(BasePipeline):
         findings: list[Finding],
         context: ExecutionContext,
     ) -> list[Finding]:
+        if self._judge is None:
+            return []
         risk = max((f.score for f in findings), default=0.0)
         has_abstain = any(f.subcategory == ML_ABSTAIN_SUBCATEGORY for f in findings)
         if not has_abstain and (risk < self._judge_low or risk >= self._judge_high):

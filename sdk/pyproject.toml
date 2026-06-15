@@ -149,6 +149,10 @@ files = [
     "src/unplug/cli",
     "src/unplug/config",
     "src/unplug/core",
+    "src/unplug/pipelines",
+    "src/unplug/scanners",
+    "src/unplug/guard.py",
+    "src/unplug/guard_scan.py",
     "src/unplug/models.py",
 ]
 warn_unused_ignores = true
