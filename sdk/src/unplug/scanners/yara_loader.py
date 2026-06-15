@@ -19,7 +19,7 @@ _load_error: str | None = None
 
 @lru_cache(maxsize=1)
 def _rules_dir() -> Path:
-    return Path(resources.files("unplug.data")).joinpath("yara_rules")
+    return Path(str(resources.files("unplug.data"))).joinpath("yara_rules")
 
 
 def get_yara_rules() -> Any:

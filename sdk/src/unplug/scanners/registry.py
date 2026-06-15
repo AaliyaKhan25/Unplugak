@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from unplug.core.config import ScannerConfig
+from unplug.config.guard import ScannerConfig
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.scanners.base import BaseScanner
 

@@ -23,18 +23,23 @@ in any release).
 | `unplug.safeguards.*` | `unplug.scanners.*` | `scanners/` is canonical; `safeguards/` is a shim |
 | `SafeguardRegistry` | `ScannerRegistry` | alias kept importable from top level |
 | `unplug.scanner` (module) | `unplug.scanners` | |
-| Flat `unplug.core.<name>` shims (e.g. `core.canary`, `core.cache`, `core.intent`, `core.taint`, …) | their subpackage home (e.g. `core.agent.canary`, `core.runtime.cache`, `core.agent.intent`, `core.taint.*`) | ~25 modules re-export from subpackages |
+| Flat `unplug.core.<name>` shims (e.g. `core.canary`, `core.cache`, `core.intent`, `core.encodings`, …) | their subpackage home (e.g. `core.agent.canary`, `core.runtime.cache`, `core.agent.intent`, `core.normalize.encodings`) | ~25 modules re-export from subpackages (note: `core.taint`, `core.policy`, `core.privacy`, `core.normalize` are canonical subpackages, **not** shims) |
+| `unplug.guard_scan` | `unplug.api.results` | `refresh_scan_result` now lives in `api.results`; `guard_scan` is a back-compat shim that emits a `DeprecationWarning` |
 | `fail_closed=false` / `fail_mode="open"` | (removed) | errors always fail closed; the flag is ignored |
 
 ## Notes / known follow-ups
 
-- **`unplug.guard_scan.refresh_scan_result`** is currently consumed cross-repo by
-  `unplug-server`. It is **Internal** today; before v1.0 it will move to a stable
-  public module with a back-compat shim, coordinated with the server. Do not build
-  new external dependencies on `unplug.guard_scan`.
-- The flat `core.*` shims do **not** all emit a `DeprecationWarning` yet; this guide
-  is the source of truth for the removal plan. Per-shim runtime warnings are a
-  tracked follow-up.
+- **`refresh_scan_result`** now has a stable home at `unplug.api.results`. The old
+  `unplug.guard_scan` path still works (back-compat shim, emits a `DeprecationWarning`).
+  `unplug-server` imports it from `guard_scan`; that import moves to `api.results`
+  **after the next SDK release** (the server installs the published SDK, which must
+  contain `api.results` first).
+- The flat `core.*` shims now emit a `DeprecationWarning` on import. SDK-internal
+  code uses the canonical subpackages, so normal use (`import unplug; Guard()`)
+  emits no warning. `unplug-server`/`unplug-mcp` are migrated off the few flat shims
+  they used (`core.boundaries`, `core.cache`, `core.encodings`, `core.versions`) in
+  lockstep. The canonical subpackages (`core.taint`, `core.policy`, `core.privacy`,
+  `core.normalize`, `core.agent`, `core.runtime`, `core.context`) are **not** shims.
 
 ## Removal timeline
 

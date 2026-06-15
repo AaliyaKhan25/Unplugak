@@ -6,7 +6,7 @@ import logging
 from collections.abc import Generator
 from typing import Any
 
-from unplug.core.config import ScannerConfig
+from unplug.config.guard import ScannerConfig
 from unplug.core.context import ExecutionContext
 from unplug.core.pattern_loader import load_presidio_entity_map
 from unplug.core.runtime.stats import MetricsCollector

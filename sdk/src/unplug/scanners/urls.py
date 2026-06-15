@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from collections.abc import Generator
 
-from unplug.core.config import ScannerConfig
+from unplug.config.guard import ScannerConfig
 from unplug.core.context import ExecutionContext
 from unplug.core.normalize import EVASION_ONLY_STAGES, Normalizer
 from unplug.core.pattern_loader import load_compiled_patterns
