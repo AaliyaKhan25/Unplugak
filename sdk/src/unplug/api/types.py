@@ -48,6 +48,14 @@ class ScanResult(BaseModel):
     redacted_text: str | None = Field(default=None)
     latency_ms: float = Field(description="Total scan time in milliseconds")
     stages_run: list[str] = Field(default_factory=list)
+    degraded: bool = Field(
+        default=False,
+        description="Whether one or more configured protection layers were unavailable",
+    )
+    degraded_layers: list[str] = Field(
+        default_factory=list,
+        description="Configured layers that were unavailable and degraded this result",
+    )
     approval: ApprovalRequest | None = Field(
         default=None,
         description="Populated when action=review for side-effect tools in tainted sessions",
