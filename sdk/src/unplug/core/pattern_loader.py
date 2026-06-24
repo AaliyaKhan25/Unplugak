@@ -73,6 +73,21 @@ def load_privacy_label_map() -> dict[str, str]:
     return dict(labels.labels)
 
 
+@lru_cache(maxsize=1)
+def load_privacy_entity_label_map() -> dict[str, str]:
+    """Map NER entity labels from a token-classification privacy model."""
+    raw = _read_text("unplug.data.maps", "privacy_entity_labels.toml")
+    parsed = tomllib.loads(raw)
+    entities = parsed.get("entities", {})
+    result: dict[str, str] = {}
+    for name, spec in entities.items():
+        if isinstance(spec, dict):
+            result[str(name).upper()] = str(spec.get("subcategory", "private_other"))
+        else:
+            result[str(name).upper()] = str(spec)
+    return result
+
+
 def leakage_patterns() -> list[tuple[str, re.Pattern[str]]]:
     """Secrets + PII + prompt-leak patterns for the leakage scanner."""
     combined: list[tuple[str, re.Pattern[str]]] = []

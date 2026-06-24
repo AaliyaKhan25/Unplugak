@@ -1,0 +1,28 @@
+# Map token-classification entity labels → leakage scanner subcategories.
+# Keys are normalized to uppercase without B-/I-/E-/S- prefixes.
+
+[entities]
+EMAIL = { subcategory = "email_address" }
+EMAIL_ADDRESS = { subcategory = "email_address" }
+PHONE = { subcategory = "phone_number" }
+PHONE_NUMBER = { subcategory = "phone_number" }
+SSN = { subcategory = "ssn" }
+SOCIAL_SECURITY_NUMBER = { subcategory = "ssn" }
+CREDIT_CARD = { subcategory = "credit_card" }
+CREDITCARD = { subcategory = "credit_card" }
+PASSWORD = { subcategory = "api_key_generic" }
+API_KEY = { subcategory = "api_key_generic" }
+SECRET = { subcategory = "api_key_generic" }
+IP_ADDRESS = { subcategory = "private_other" }
+IP = { subcategory = "private_other" }
+ADDRESS = { subcategory = "private_other" }
+LOCATION = { subcategory = "private_other" }
+LOC = { subcategory = "private_other" }
+GPE = { subcategory = "private_other" }
+ORG = { subcategory = "private_other" }
+ORGANIZATION = { subcategory = "private_other" }
+PER = { subcategory = "private_other" }
+PERSON = { subcategory = "private_other" }
+NAME = { subcategory = "private_other" }
+USERNAME = { subcategory = "private_other" }
+DEFAULT = { subcategory = "private_other" }

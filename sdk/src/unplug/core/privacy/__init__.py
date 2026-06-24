@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from unplug.core.privacy.model_filter import TokenPrivacyFilter
 from unplug.core.privacy.privacy import (
     HeuristicPrivacyFilter,
     NullPrivacyFilter,
@@ -16,5 +17,6 @@ __all__ = [
     "PrivacyFilterService",
     "SecretsRegistry",
     "SecretsSanitizer",
+    "TokenPrivacyFilter",
     "build_privacy_filter",
 ]

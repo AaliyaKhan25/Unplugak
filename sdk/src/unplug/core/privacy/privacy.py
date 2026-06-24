@@ -66,14 +66,32 @@ class HeuristicPrivacyFilter:
         return [*baseline, *extra]
 
 
-def build_privacy_filter(*, enabled: bool, dev_heuristic: bool = False) -> PrivacyFilterService:
-    """Build privacy filter stage. SDK uses heuristic only when explicitly requested."""
+def build_privacy_filter(
+    *,
+    enabled: bool,
+    dev_heuristic: bool = False,
+    model_source: str | None = None,
+    threshold: float = 0.5,
+    device: str | None = None,
+    local_files_only: bool = False,
+    eager_load: bool = True,
+) -> PrivacyFilterService:
+    """Build privacy filter stage for server or SDK."""
     if not enabled:
         return NullPrivacyFilter()
+    if model_source:
+        from unplug.core.privacy.model_filter import TokenPrivacyFilter
+
+        return TokenPrivacyFilter(
+            model_source,
+            threshold=threshold,
+            device=device,
+            local_files_only=local_files_only,
+            eager_load=eager_load,
+        )
     if dev_heuristic:
         return HeuristicPrivacyFilter()
     _logger.warning(
-        "privacy_filter_enabled without dev_heuristic; using NullPrivacyFilter until "
-        "unplug-safeguard model ships"
+        "privacy_filter_enabled without model_source or dev_heuristic; using NullPrivacyFilter"
     )
     return NullPrivacyFilter()
