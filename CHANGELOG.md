@@ -4,6 +4,29 @@ All notable changes to the `unplug-ai` SDK.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-06-24
+
+### Added
+
+- `ScanResult.degraded` and `ScanResult.degraded_layers` — surface when configured protection layers were unavailable
+- Token privacy filter (`build_privacy_filter`, `ModelPrivacyFilter`, `HeuristicPrivacyFilter`) behind optional `presidio` / ML extras
+- `MIGRATION.md` — API stability tiers, deprecated import paths, and v1.0 removal timeline
+- `refresh_scan_result` stable export at `unplug.api.results`
+- README benchmark table separating regex-only vs ML recall-gate metrics
+- `with_tiny()` recall-gate preset tuned for higher ML recall on injection
+
+### Fixed
+
+- Privacy filter thread-safe model load and `max_length` forwarding
+- Benchmark ML guard pipeline isolation and exfil demo output edge cases
+
+### Changed
+
+- Flat `unplug.core.*` shim imports emit `DeprecationWarning`; canonical subpackages are preferred
+- `unplug.guard_scan` emits deprecation warning — use `unplug.api.results`
+- Judge default model updated to `gpt-5.4-nano`
+- Audit remediation bundle (#41–#42): degradation metadata, privacy filter, scan CLI hardening
+
 ## [0.3.1] — 2026-06-13
 
 ### Added

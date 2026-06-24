@@ -1,6 +1,6 @@
 [project]
 name = "unplug-ai"
-version = "0.3.1"
+version = "0.4.0"
 description = "Unplug the bad AI. Fast prompt injection detection and redaction for LLM apps, agents, and RAG pipelines."
 readme = "README.md"
 license = "Apache-2.0"
@@ -94,6 +94,7 @@ select = [
     "B",   # flake8-bugbear
     "SIM", # flake8-simplify
     "RUF", # ruff-specific
+    "S",   # flake8-bandit (security)
 ]
 ignore = [
     "SIM108",  # ternary - often less readable in security code
@@ -102,9 +103,31 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["N802", "N803", "RUF001", "RUF003", "RUF012", "B011"]
+# Tests use asserts (S101), fake secrets (S105), /tmp paths (S108), and shell/
+# subprocess helpers (S6xx) by design; bandit checks there add noise, not safety.
+"tests/**" = [
+    "N802",
+    "N803",
+    "RUF001",
+    "RUF003",
+    "RUF012",
+    "B011",
+    "S101",
+    "S105",
+    "S108",
+    "S110",
+    "S112",
+    "S603",
+    "S604",
+    "S607",
+]
+"benchmarks/**" = ["S101"]
 "src/unplug/core/normalize/normalize.py" = ["RUF001", "RUF003", "SIM102"]
 "src/unplug/safeguards/__init__.py" = ["E402"]
+# `token` here is a tool-permission keyword (read/write/execute), not a credential.
+"src/unplug/core/agent/toolchain.py" = ["S105"]
+# Type-narrowing asserts after lazy model load; not runtime control flow.
+"src/unplug/ml/span_model.py" = ["S101"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["unplug", "benchmarks"]
@@ -114,6 +137,42 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.11"
+# Gate scoped to the type-clean packages. ml/, data/, integrations/, and a few
+# others still carry typing debt (mostly untyped torch/transformers + yaml.object
+# returns) — see the typing-debt notes before widening this list.
+files = [
+    "src/unplug/api",
+    "src/unplug/audit",
+    "src/unplug/cli",
+    "src/unplug/config",
+    "src/unplug/core",
+    "src/unplug/pipelines",
+    "src/unplug/scanners",
+    "src/unplug/guard.py",
+    "src/unplug/guard_scan.py",
+    "src/unplug/models.py",
+]
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+# Heavy ML / optional third-party deps ship no type stubs; don't fail on them.
+[[tool.mypy.overrides]]
+module = [
+    "transformers.*",
+    "torch.*",
+    "onnxruntime.*",
+    "yara.*",
+    "presidio_analyzer.*",
+    "haystack.*",
+    "litellm.*",
+    "firecrawl.*",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -134,6 +193,7 @@ filterwarnings = [
     "ignore:builtin type SwigPyPacked:DeprecationWarning",
     "ignore:builtin type SwigPyObject:DeprecationWarning",
     "ignore:unplug.safeguards:DeprecationWarning",
+    "ignore:unplug.core.:DeprecationWarning",
 ]
 
 [project.scripts]
@@ -145,6 +205,8 @@ unplug-scan-pr = "unplug.cli.scan_pr:main"
 [dependency-groups]
 dev = [
     "datasets>=4.8.5",
+    "mypy>=2.1.0",
     "pyarrow>=24.0.0",
     "pyyaml>=6.0.3",
+    "types-pyyaml>=6.0.12.20260518",
 ]

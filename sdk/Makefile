@@ -1,10 +1,13 @@
-.PHONY: install lint format fix check check-ci test test-cov test-security test-ml smoke-ml docker-e2e audit audit-ml scenarios attack-gate examples
+.PHONY: install lint typecheck format fix check check-ci test test-cov test-security test-ml smoke-ml docker-e2e audit audit-ml scenarios attack-gate examples
 
 install:
 	uv sync --all-extras --dev
 
 lint:
 	uv run ruff check .
+
+typecheck:
+	uv run mypy
 
 format:
 	uv run ruff format .
@@ -13,7 +16,7 @@ fix:
 	uv run ruff check --fix .
 	uv run ruff format .
 
-check: lint
+check: lint typecheck
 	uv run ruff format --check .
 	uv run pytest -q
 
@@ -56,7 +59,7 @@ test-cov:
 	uv run pytest -q -m "not requires_docker and not slow" --cov=unplug --cov-report=xml:coverage.xml --cov-report=term --cov-fail-under=75 --junitxml=pytest.xml
 
 test-security:
-	uv run pytest tests/security tests/unit/core/test_agent_hardening.py -v
+	uv run pytest tests/security tests/unit/core/agent/test_agent_hardening.py -v
 
 audit:
 	uv run unplug-audit

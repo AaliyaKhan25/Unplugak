@@ -11,13 +11,13 @@ from unplug.config.agent_policy import (
     ToolChainConfig,
     TrajectoryConfig,
 )
+from unplug.config.guard import PipelineConfig
 from unplug.config.tools import ToolPolicyConfig
 from unplug.core.agent.approval import build_approval_request
 from unplug.core.agent.collusion import collusion_findings
 from unplug.core.agent.degradation import degraded_tool_findings
 from unplug.core.agent.intent import check_intent_mismatch
 from unplug.core.agent.toolchain import toolchain_findings
-from unplug.core.config import PipelineConfig
 from unplug.core.context import ExecutionContext, ToolCall
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TrustLevel
@@ -151,7 +151,7 @@ class ToolCallPipeline(BasePipeline):
                 span_end=0,
                 score=score,
                 evidence=(
-                    f"Side-effect tool '{tool_call.tool_name}' blocked for review: "
+                    f"Side-effect tool '{tool_call.tool_name}' held for review: "
                     f"session tainted ({triggers})"
                 ),
             )

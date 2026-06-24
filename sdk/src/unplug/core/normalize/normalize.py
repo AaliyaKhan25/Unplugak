@@ -342,7 +342,7 @@ def _decode_base64(text: str, offset_table: list[int]) -> tuple[str, list[int]]:
             if len(decoded_bytes) > _MAX_BASE64_DECODED_SIZE:
                 continue
             decoded = decoded_bytes.decode("utf-8")
-        except Exception:
+        except Exception:  # noqa: S112 - malformed/non-base64 candidate: skip silently
             continue
 
         for i in range(last_end, m.start()):

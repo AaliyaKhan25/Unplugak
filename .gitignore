@@ -8,8 +8,10 @@ __pycache__/
 
 # Downloaded benchmark datasets (regenerate via benchmarks.download)
 sdk/benchmarks/data/*.jsonl
-# Keep the small, attributed attack corpus the CI gate depends on
+# Keep the small, attributed corpora the CI gate depends on
 !sdk/benchmarks/data/
+!sdk/benchmarks/data/garak_attacks.jsonl
+!sdk/benchmarks/data/benign_ci.jsonl
 
 # Distribution / packaging
 .Python

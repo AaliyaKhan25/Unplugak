@@ -10,13 +10,13 @@ from unplug.api.enums import Action, Source
 from unplug.api.types import Finding, ScanRequest, ScanResult
 from unplug.client import UnplugClient
 from unplug.config.guard import GuardConfig, resolve_input_scanners
-from unplug.config.policy import ScanPolicy
+from unplug.config.limits import LimitConfig, LimitViolation
+from unplug.config.policy import MlGateConfig, ScanPolicy
 from unplug.core.agent.approval import ApprovalProvider, NullApprovalProvider
 from unplug.core.agent.boundaries import maybe_wrap_untrusted
 from unplug.core.agent.canary import CanaryRegistry
 from unplug.core.context import ExecutionContext, ToolCall
 from unplug.core.judge import JudgeProvider
-from unplug.core.limits import LimitConfig, LimitViolation
 from unplug.core.normalize import Normalizer
 from unplug.core.normalize.encodings import EncodingClassifier, default_encoding_classifier
 from unplug.core.policy import policy_from_request
@@ -361,16 +361,25 @@ class Guard:
         require_ml: bool = False,
         **kwargs: Any,
     ) -> Guard:
-        """Local guard with unplug-tiny from Hugging Face (Unplug-AI/unplug-tiny-v1)."""
-        cfg = kwargs.pop("config", None) or GuardConfig()
-        cfg = cfg.model_copy(
-            update={
-                "active_model": "tiny",
-                "auto_download_model": auto_download,
-                "require_ml": require_ml,
-                "mode": "local",
-            }
-        )
+        """Local guard with unplug-tiny from Hugging Face (Unplug-AI/unplug-tiny-v1).
+
+        Defaults the ML gate to recall mode so the model second-passes every scan
+        and can catch injections the regex layer misses (not only the gray band).
+        Pass an explicit ``config=`` to keep your own ``pipeline.ml_gate``.
+        """
+        provided = kwargs.pop("config", None)
+        cfg = provided or GuardConfig()
+        updates: dict[str, Any] = {
+            "active_model": "tiny",
+            "auto_download_model": auto_download,
+            "require_ml": require_ml,
+            "mode": "local",
+        }
+        if provided is None:
+            updates["pipeline"] = cfg.pipeline.model_copy(
+                update={"ml_gate": MlGateConfig(always_below_high=True, gray_low=0.0)}
+            )
+        cfg = cfg.model_copy(update=updates)
         return cls(config=cfg, **kwargs)
 
     def scan(self, text: str, source: Source | str = Source.USER) -> ScanResult:

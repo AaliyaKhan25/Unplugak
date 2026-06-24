@@ -1,4 +1,4 @@
-"""Optional LiteLLM judge: BYOLLM for borderline cases and SDK smoke testing."""
+"""Optional LiteLLM judge — BYOLLM for borderline cases and SDK smoke testing."""
 
 from __future__ import annotations
 
@@ -7,7 +7,10 @@ from unplug.optional.litellm import get_litellm
 
 
 def create_litellm_judge(
-    model: str = "gpt-4o",
+    # gpt-5.4-nano: fast (~1.6s) and cheap with no reasoning-token overhead, so it
+    # fits the borderline-case judge. gpt-5-nano works but is a reasoning model
+    # (~4.4s, ~320 reasoning tokens per call) — too slow/costly as the default.
+    model: str = "gpt-5.4-nano",
     *,
     timeout: float = 30.0,
     api_key: str | None = None,

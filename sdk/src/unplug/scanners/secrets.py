@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Generator
 
+from unplug.config.guard import ScannerConfig
 from unplug.core.agent.canary import CANARY_NAME_PREFIX
-from unplug.core.config import ScannerConfig
 from unplug.core.context import ExecutionContext
 from unplug.core.runtime.stats import MetricsCollector
 from unplug.core.taint import TaintedText

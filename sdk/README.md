@@ -60,6 +60,43 @@ result = guard.scan(rag_chunk, source="retrieved")
 
 No install needed to try it: [live demo on Hugging Face](https://huggingface.co/spaces/Unplug-AI/unplug-tiny-demo).
 
+## Benchmarks
+
+Regex alone is a fast first line; the ML span model is what catches what regex
+structurally cannot — especially **indirect** injection hidden in retrieved
+content. The headline, measured on public injection datasets in isolated
+single-turn sessions:
+
+| Dataset | Mode | Recall | F1 | FPR |
+| --- | --- | ---: | ---: | ---: |
+| neuralchemy (direct, 4,391) | regex-only | 0.39 | 0.56 | <1% |
+| neuralchemy (direct, 4,391) | **regex + ML** | **0.98** | **0.99** | <1% |
+| microsoft llmail (indirect, 2,500) | regex-only | 0.05 | — | — |
+| microsoft llmail (indirect, 2,500) | **regex + ML** | **0.91** | — | — |
+
+Precision stays ~0.99 in both modes. The `<1%` FPR is on the injection set; on a
+separate hard-benign corpus (95 prompts) regex flags 0 and regex + ML flags 2,
+i.e. **2.1%** (one of which is a *review*, not a block). `inj_threshold` is tuned
+to the recall/FPR knee.
+
+Reproduce (downloads `unplug-tiny-v1` from Hugging Face on first ML run):
+
+```bash
+cd sdk && uv sync --all-extras --dev
+uv run python -m benchmarks.download --dataset all --out benchmarks/data
+
+# regex-only baseline (table rows 1 and 3)
+uv run python -m benchmarks.run benchmarks/data/neuralchemy.jsonl --isolated --format json
+uv run python -m benchmarks.run benchmarks/data/microsoft_indirect.jsonl --isolated --format json
+
+# regex + ML (rows 2 and 4; downloads unplug-tiny-v1 on first run)
+uv run python -m benchmarks.run benchmarks/data/neuralchemy.jsonl --ml --isolated --format json
+uv run python -m benchmarks.run benchmarks/data/microsoft_indirect.jsonl --ml --isolated --format json
+```
+
+Full methodology, per-dataset tables, and honest caveats: [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
+Per-axis model metrics (including failure modes) live on the [model card](https://huggingface.co/Unplug-AI/unplug-tiny-v1).
+
 ## Protect an agent
 
 Wire Unplug into any agent that fetches external content or calls tools:
@@ -73,7 +110,7 @@ Wire Unplug into any agent that fetches external content or calls tools:
 
 Context files (AGENTS.md and similar): `guard.scan_context_file(text, filename="AGENTS.md")` before loading into the system prompt.
 
-Full walkthrough: [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py) shows a hidden webpage injection leading to a tainted session and a blocked exfil tool call.
+Full walkthrough: [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py) shows a hidden webpage injection leading to a tainted session, an exfil tool call held for review, and a destructive call blocked — see [`agent_exfil_demo.txt`](examples/agent_exfil_demo.txt) for sample output.
 
 ## Long documents and streams
 
@@ -204,7 +241,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for layering and optional extra
 | Doc | Covers |
 |-----|--------|
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Hosted vs embedded vs sidecar architecture |
-| [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) | Regex SDK eval results (neuralchemy, microsoft) |
+| [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) | Regex vs regex + ML eval results (neuralchemy, microsoft) |
 | [`docs/ML_INTEGRATION.md`](docs/ML_INTEGRATION.md) | Checkpoint layout, thresholds, long-text and streaming config |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | LangGraph, Agno, framework-agnostic hooks |
 | [`docs/AGENT_FLOW_SECURITY.md`](docs/AGENT_FLOW_SECURITY.md) | End-to-end agent hardening flow |

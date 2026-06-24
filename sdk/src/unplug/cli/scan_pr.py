@@ -33,8 +33,10 @@ _MAX_CHUNK = 2000
 
 def changed_agent_files(base_ref: str, repo_root: Path) -> list[Path]:
     """Return changed files that look like agent/MCP configuration."""
-    out = subprocess.check_output(
-        ["git", "diff", "--name-only", "--diff-filter=ACMRT", f"origin/{base_ref}...HEAD"],
+    # Fixed git argv (no shell); base_ref is passed as a list element, not interpolated
+    # into a shell string, so there is no command-injection surface.
+    out = subprocess.check_output(  # noqa: S603
+        ["git", "diff", "--name-only", "--diff-filter=ACMRT", f"origin/{base_ref}...HEAD"],  # noqa: S607
         cwd=repo_root,
         text=True,
     )
@@ -75,11 +77,12 @@ def scan_paths(repo_root: Path, paths: list[Path]) -> list[tuple[Path, str]]:
     return blocked
 
 
-def main() -> int:
+def main_argv(argv: list[str] | None = None) -> int:
+    """Run the scan with an explicit argv (testable entry point)."""
     parser = argparse.ArgumentParser(
         description="Scan agent-related files changed in a PR with unplug-ai (regex-only)",
     )
-    parser.add_argument("--base-ref", default="dev", help="Base branch name (default: dev)")
+    parser.add_argument("--base-ref", default="main", help="Base branch name (default: main)")
     parser.add_argument(
         "--repo-root",
         type=Path,
@@ -92,7 +95,7 @@ def main() -> int:
         type=Path,
         help="Explicit file paths to scan (skips git diff when set)",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     repo_root = args.repo_root.resolve()
 
     if args.paths:
@@ -112,6 +115,10 @@ def main() -> int:
         return 1
     print(f"Scanned {len(paths)} agent-related file(s); no issues found.")
     return 0
+
+
+def main() -> int:
+    return main_argv()
 
 
 if __name__ == "__main__":

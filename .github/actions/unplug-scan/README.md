@@ -2,6 +2,10 @@
 
 Scan **agent-related files changed in a PR** with the unplug-ai regex Guard. Intended for repos that ship `AGENTS.md`, `.cursor/rules`, or MCP client configs.
 
+**External repos:** prefer the published Marketplace action **[UnplugAI/unplug-scan-action@v1](https://github.com/UnplugAI/unplug-scan-action)** (PyPI install, semver tags).
+
+This composite action lives in the monorepo for local SDK development.
+
 ## Usage in this repo
 
 Already wired in [`.github/workflows/pr-scan.yml`](../workflows/pr-scan.yml).
@@ -23,7 +27,7 @@ jobs:
         with:
           base-ref: main
           install-mode: pypi
-          unplug-version: ">=0.3.1"
+          unplug-version: ">=0.4.0,<0.5"
 ```
 
 ## Inputs
@@ -34,7 +38,7 @@ jobs:
 | `python-version` | `3.12` | Python version |
 | `working-directory` | `sdk` | Path to SDK tree when `install-mode: local` |
 | `install-mode` | `local` | `local` (uv sync) or `pypi` (install from PyPI) |
-| `unplug-version` | `>=0.3.1` | Version constraint for PyPI install |
+| `unplug-version` | `>=0.4.0,<0.5` | Version constraint for PyPI install |
 
 ## What gets scanned
 
