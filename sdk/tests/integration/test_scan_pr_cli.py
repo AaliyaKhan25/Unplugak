@@ -23,9 +23,17 @@ def _write_agent_file(root: Path, name: str, body: str) -> Path:
 
 
 def test_no_changed_files_returns_zero(capsys: pytest.CaptureFixture[str]) -> None:
-    with patch.object(scan_pr, "changed_agent_files", return_value=[]):
+    seen: dict[str, str] = {}
+
+    def fake_changed_agent_files(base_ref: str, repo_root: Path) -> list[Path]:
+        _ = repo_root
+        seen["base_ref"] = base_ref
+        return []
+
+    with patch.object(scan_pr, "changed_agent_files", side_effect=fake_changed_agent_files):
         exit_code = scan_pr.main_argv([])
     assert exit_code == 0
+    assert seen["base_ref"] == "main"
     assert "No agent-related files" in capsys.readouterr().out
 
 

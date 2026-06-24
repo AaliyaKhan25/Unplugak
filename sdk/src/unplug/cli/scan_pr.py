@@ -82,7 +82,7 @@ def main_argv(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Scan agent-related files changed in a PR with unplug-ai (regex-only)",
     )
-    parser.add_argument("--base-ref", default="dev", help="Base branch name (default: dev)")
+    parser.add_argument("--base-ref", default="main", help="Base branch name (default: main)")
     parser.add_argument(
         "--repo-root",
         type=Path,
