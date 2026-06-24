@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from threading import Lock
 from typing import TYPE_CHECKING
 
 from unplug.api.types import Finding
@@ -38,6 +39,7 @@ class TokenPrivacyFilter:
         self._tokenizer: PreTrainedTokenizerBase | None = None
         self._model: PreTrainedModel | None = None
         self._device: str | None = device
+        self._load_lock = Lock()
         if eager_load:
             self.load()
 
@@ -52,36 +54,43 @@ class TokenPrivacyFilter:
     def load(self) -> None:
         if self._model is not None:
             return
-        try:
-            import torch
-            from transformers import AutoModelForTokenClassification, AutoTokenizer
-        except ImportError as exc:
-            msg = (
-                "TokenPrivacyFilter requires transformers and torch; "
-                "install unplug-ai[ml] or server [ml] extra"
+        with self._load_lock:
+            if self._model is not None:
+                return
+            try:
+                import torch
+                from transformers import AutoModelForTokenClassification, AutoTokenizer
+            except ImportError as exc:
+                msg = (
+                    "TokenPrivacyFilter requires transformers and torch; "
+                    "install unplug-ai[ml] or server [ml] extra"
+                )
+                raise RuntimeError(msg) from exc
+
+            from unplug.ml.device import resolve_torch_device
+
+            source = self._model_source
+            path = Path(source)
+            load_kwargs = {"local_files_only": self._local_files_only}
+            if path.is_dir():
+                source = str(path)
+
+            self._tokenizer = AutoTokenizer.from_pretrained(source, **load_kwargs)
+            self._model = AutoModelForTokenClassification.from_pretrained(
+                source,
+                **load_kwargs,
+                use_safetensors=True,
+                torch_dtype=torch.float32,
             )
-            raise RuntimeError(msg) from exc
-
-        from unplug.ml.device import resolve_torch_device
-
-        source = self._model_source
-        path = Path(source)
-        load_kwargs = {"local_files_only": self._local_files_only}
-        if path.is_dir():
-            source = str(path)
-
-        self._tokenizer = AutoTokenizer.from_pretrained(source, **load_kwargs)
-        self._model = AutoModelForTokenClassification.from_pretrained(
-            source,
-            **load_kwargs,
-            use_safetensors=True,
-            torch_dtype=torch.float32,
-        )
-        device = resolve_torch_device(self._device)
-        self._model.to(device)
-        self._model.eval()
-        self._device = device
-        _logger.info("Loaded token privacy filter from %s on %s", self._model_source, device)
+            device = resolve_torch_device(self._device)
+            model_loaded = self._model
+            if model_loaded is None:
+                msg = "Privacy filter failed to load model"
+                raise RuntimeError(msg)
+            model_loaded.to(device)
+            model_loaded.eval()
+            self._device = device
+            _logger.info("Loaded token privacy filter from %s on %s", self._model_source, device)
 
     def unload(self) -> None:
         self._model = None
@@ -106,7 +115,7 @@ class TokenPrivacyFilter:
         covered = {(f.span_start, f.span_end) for f in baseline}
         extra: list[Finding] = []
 
-        encoding = self._tokenizer(
+        encoding = tokenizer(
             text,
             return_offsets_mapping=True,
             truncation=True,
@@ -120,7 +129,11 @@ class TokenPrivacyFilter:
             logits = model(**model_inputs).logits[0]
 
         probs = torch.softmax(logits, dim=-1)
-        id2label = {int(k): str(v) for k, v in model.config.id2label.items()}
+        id2label_raw = model.config.id2label
+        if id2label_raw is None:
+            msg = "Privacy model missing id2label mapping"
+            raise RuntimeError(msg)
+        id2label = {int(k): str(v) for k, v in id2label_raw.items()}
         labels: list[str] = []
         scores: list[float] = []
         for idx in range(len(offsets)):

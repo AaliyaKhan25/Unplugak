@@ -72,6 +72,7 @@ def build_privacy_filter(
     dev_heuristic: bool = False,
     model_source: str | None = None,
     threshold: float = 0.5,
+    max_length: int = 512,
     device: str | None = None,
     local_files_only: bool = False,
     eager_load: bool = True,
@@ -85,6 +86,7 @@ def build_privacy_filter(
         return TokenPrivacyFilter(
             model_source,
             threshold=threshold,
+            max_length=max_length,
             device=device,
             local_files_only=local_files_only,
             eager_load=eager_load,
