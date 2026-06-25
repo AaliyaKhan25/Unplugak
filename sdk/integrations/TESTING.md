@@ -64,14 +64,58 @@ uv run pytest tests/integration/test_integrations.py tests/unit/integrations/ -v
 | 39 | Hooks | wrap_retrieved blocked placeholder | Non-empty safe text |
 | 40 | Hooks | Secret-shaped user input | Block / redact |
 
+## Two layers of coverage
+
+| Layer | What it proves | Frameworks installed? |
+|-------|----------------|-----------------------|
+| **Matrix** (`tests/security/test_agent_integration_matrix.py`) | The 40 attack angles + our adapter callables behave correctly | No — regex core only |
+| **Live** (`tests/optional/live/test_<framework>_live.py`) | Each adapter works against the *real* installed framework (e.g. a compiled LangGraph graph, a real LlamaIndex `TextNode`, a real SK `Kernel`) | Yes — one extra per run |
+
+The matrix is framework-agnostic and always runs. The live tests `importorskip` their
+framework, so they **skip** in the core CI matrix and only execute where the framework is
+installed.
+
+## Live framework tests
+
+These run in the dedicated **`Integrations (live)`** workflow
+(`.github/workflows/integrations-live.yml`): a per-framework matrix where each leg installs
+*one* extra in isolation. It triggers on PRs that touch `sdk/src/unplug/integrations/**`,
+nightly (06:00 UTC), and via manual dispatch — keeping the everyday PR gate fast while
+still catching framework drift.
+
+Run one framework locally (installs just that extra):
+
+```bash
+cd sdk
+uv sync --extra dev --extra langgraph
+uv run pytest -q -m requires_integrations tests/optional/live/test_langgraph_live.py
+```
+
+Run every live test you have frameworks for (installs all agent SDKs):
+
+```bash
+uv sync --extra dev --extra integrations
+uv run pytest -q -m requires_integrations tests/optional/live/
+```
+
+> Live tests never call an LLM. They build the smallest real framework object and assert the
+> Unplug guard's decision (block on injection / destructive tool, allow benign), so they stay
+> hermetic and need no API keys.
+
+**Tolerated skips.** Each leg installs its framework, so a test that runs and fails is a real
+regression. But some optional frameworks ship releases that are unimportable under our pinned
+core deps (e.g. a `semantic-kernel` build that imports `Url` from `pydantic.networks`, removed
+in Pydantic v2). When that happens the module `importorskip`s, pytest exits `5` ("no tests
+ran"), and the job emits a non-blocking `::warning::` rather than failing — that is an upstream
+conflict, not an Unplug bug. Genuine test failures (exit `1`) still fail the job.
+
 ## CI markers
 
 | Marker | When |
 |--------|------|
 | *(none)* | Regex core — always runs |
-| `@pytest.mark.requires_haystack` | Haystack component tests |
 | `@pytest.mark.requires_ml` | ML recall-gate probes |
-| `@pytest.mark.requires_integrations` | Tests that import optional agent SDKs |
+| `@pytest.mark.requires_integrations` | Live tests that import a real agent SDK (`tests/optional/live/`) |
 
 ## Adding a case
 
