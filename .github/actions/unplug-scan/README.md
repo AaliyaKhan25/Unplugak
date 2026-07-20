@@ -27,7 +27,7 @@ jobs:
         with:
           base-ref: main
           install-mode: pypi
-          unplug-version: ">=0.5.0,<0.6"
+          unplug-version: ">=0.6.0,<0.7"
 ```
 
 ## Inputs
@@ -38,7 +38,7 @@ jobs:
 | `python-version` | `3.12` | Python version |
 | `working-directory` | `sdk` | Path to SDK tree when `install-mode: local` |
 | `install-mode` | `local` | `local` (uv sync) or `pypi` (install from PyPI) |
-| `unplug-version` | `>=0.5.0,<0.6` | Version constraint for PyPI install |
+| `unplug-version` | `>=0.6.0,<0.7` | Version constraint for PyPI install |
 
 ## What gets scanned
 
