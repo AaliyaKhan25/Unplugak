@@ -17,4 +17,9 @@ class CacheConfig(BaseModel):
     max_chunk_entries: int = Field(default=256, ge=1)
     advance_prefix_on_redact: bool = True
     # Re-scan this many chars at the safe-prefix boundary (StreamScanner-aligned).
-    prefix_overlap_chars: int = Field(default=_DEFAULT_PREFIX_OVERLAP_CHARS, ge=1)
+    # Floor matches the default: smaller values let split injections complete outside
+    # the re-scan window after a cached ALLOW prefix.
+    prefix_overlap_chars: int = Field(
+        default=_DEFAULT_PREFIX_OVERLAP_CHARS,
+        ge=_DEFAULT_PREFIX_OVERLAP_CHARS,
+    )
