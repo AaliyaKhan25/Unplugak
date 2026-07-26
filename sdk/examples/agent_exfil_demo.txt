@@ -31,7 +31,7 @@ Watch Unplug catch it -- and show its work.
       REVIEW: a side-effect call in a tainted session needs human
       approval before it runs -- the agent can't silently send your
       keys. Why it was flagged:
-        - taint/session_taint_side_effect: Side-effect tool 'send_email' blocked for review: session tainted (scan:retrieved, tool:web_fetch)
+        - taint/session_taint_side_effect: Side-effect tool 'send_email' held for review: session tainted (scan:retrieved, tool:web_fetch)
         - intent/benign_intent_side_effect_tool: Side-effect tool 'send_email' conflicts with informational user intent: 'Summarize this weather page for me.'
 
 [4/4] A destructive command is always blocked
