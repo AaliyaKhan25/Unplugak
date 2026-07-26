@@ -126,6 +126,8 @@ and human approval via ``ApprovalProvider``.
 
 Full walkthrough: [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py) shows a hidden webpage injection leading to a tainted session, an exfil tool call held for review, and a destructive call blocked — see [`agent_exfil_demo.txt`](examples/agent_exfil_demo.txt) for sample output.
 
+Want the contrast? [`examples/agent_exfil_unguarded.py`](examples/agent_exfil_unguarded.py) runs the identical attack with no defense in place: the agent follows the hidden instruction, the keys leave, and the summary comes back looking perfectly normal. Run it first, then the demo above.
+
 New here? Start with [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) (5-minute path).
 
 ## Long documents and streams
@@ -250,7 +252,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for layering and optional extra
 - [`examples/public_api_surface_demo.py`](examples/public_api_surface_demo.py): stable
   `unplug.api.*` imports for server/MCP-style dependents
 - [`examples/server_client.py`](examples/server_client.py): HTTP client against a running sidecar
-- [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py): hidden injection, tainted session, blocked exfil tool call
+- [`examples/agent_exfil_unguarded.py`](examples/agent_exfil_unguarded.py) and [`examples/agent_exfil_demo.py`](examples/agent_exfil_demo.py): the same attack without and with Unplug — hidden injection, tainted session, blocked exfil tool call
 - [`examples/langgraph_hooks_demo.py`](examples/langgraph_hooks_demo.py) and [`examples/agno_hooks_demo.py`](examples/agno_hooks_demo.py): framework hooks
 - [`examples/hosted_client.py`](examples/hosted_client.py) and [`examples/local_sidecar_client.py`](examples/local_sidecar_client.py): server modes
 - [`demo/`](demo/): the Gradio app behind the [Hugging Face demo](https://huggingface.co/spaces/Unplug-AI/unplug-tiny-demo)

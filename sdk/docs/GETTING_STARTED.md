@@ -77,8 +77,12 @@ git clone https://github.com/UnplugAI/Unplug.git
 cd Unplug/sdk
 pip install -e .
 python examples/quickstart.py
-python examples/agent_exfil_demo.py   # story-driven walkthrough
+python examples/agent_exfil_unguarded.py   # the attack, with no defense
+python examples/agent_exfil_demo.py        # the same attack, with Unplug
 ```
+
+Run those last two back to back: same poisoned page, same agent, once without
+Unplug and once with it. It is the fastest way to see what the library does.
 
 From PyPI only:
 

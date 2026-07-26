@@ -41,13 +41,35 @@ def test_destructive_shell_always_blocked() -> None:
     assert shell.action in (Action.BLOCK, Action.REVIEW) or not shell.safe
 
 
-def test_demo_script_exits_zero() -> None:
+def _load_example(name: str):
     import importlib.util
     from pathlib import Path
 
-    demo_path = Path(__file__).resolve().parents[2] / "examples" / "agent_exfil_demo.py"
-    spec = importlib.util.spec_from_file_location("agent_exfil_demo", demo_path)
+    demo_path = Path(__file__).resolve().parents[2] / "examples" / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(name, demo_path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    assert module.main() == 0
+    return module
+
+
+def test_demo_script_exits_zero() -> None:
+    assert _load_example("agent_exfil_demo").main() == 0
+
+
+def test_unguarded_demo_script_exits_zero() -> None:
+    assert _load_example("agent_exfil_unguarded").main() == 0
+
+
+def test_unguarded_demo_uses_the_same_attack() -> None:
+    """The before/after pair is only honest if both run the identical attack.
+
+    The two demos duplicate the scenario constants (the unguarded one imports
+    nothing from unplug -- that is the point). Pin them together so a future
+    edit to one cannot silently make the comparison misleading on camera.
+    """
+    guarded = _load_example("agent_exfil_demo")
+    unguarded = _load_example("agent_exfil_unguarded")
+
+    assert unguarded.WEBPAGE == guarded.WEBPAGE
+    assert unguarded.USER_REQUEST == guarded.USER_REQUEST
