@@ -11,7 +11,7 @@ from unplug.api.types import Finding, ScanRequest, ScanResult
 from unplug.client import UnplugClient
 from unplug.config.guard import GuardConfig, resolve_input_scanners
 from unplug.config.limits import LimitConfig, LimitViolation
-from unplug.config.policy import MlGateConfig, ScanPolicy
+from unplug.config.policy import ScanPolicy
 from unplug.core.agent.approval import ApprovalProvider, NullApprovalProvider
 from unplug.core.agent.boundaries import maybe_wrap_untrusted
 from unplug.core.agent.canary import CanaryRegistry
@@ -30,6 +30,7 @@ from unplug.core.runtime.cache import (
 )
 from unplug.core.runtime.logging import correlation_scope, get_logger
 from unplug.core.runtime.model_runtime import (
+    apply_catalog_gate,
     load_active_model_provider,
     merge_catalog_models,
     model_cache_version,
@@ -100,6 +101,9 @@ class Guard:
         self,
         *,
         scanners: list[str] | None = None,
+        model: str | None = None,
+        auto_download_model: bool | None = None,
+        require_ml: bool | None = None,
         mode: str | None = None,
         server_url: str | None = None,
         server_api_key: str | None = None,
@@ -128,6 +132,12 @@ class Guard:
             overrides["mode"] = mode
         if scanners is not None:
             overrides["scanners"] = scanners
+        if model is not None:
+            overrides["active_model"] = model
+        if auto_download_model is not None:
+            overrides["auto_download_model"] = auto_download_model
+        if require_ml is not None:
+            overrides["require_ml"] = require_ml
         if server_url is not None:
             overrides["server_url"] = server_url
         if server_api_key is not None:
@@ -136,6 +146,7 @@ class Guard:
             overrides["limits"] = limits
         cfg = cfg.model_copy(update=overrides)
         cfg = merge_catalog_models(cfg)
+        cfg = apply_catalog_gate(cfg)
 
         self._config = cfg
         self._limits = cfg.limits
@@ -371,26 +382,27 @@ class Guard:
         require_ml: bool = False,
         **kwargs: Any,
     ) -> Guard:
-        """Local guard with unplug-tiny from Hugging Face (Unplug-AI/unplug-tiny-v1).
+        """Deprecated. Use ``Guard(model="tiny")``.
 
-        Defaults the ML gate to recall mode so the model second-passes every scan
-        and can catch injections the regex layer misses (not only the gray band).
-        Pass an explicit ``config=`` to keep your own ``pipeline.ml_gate``.
+        Kept so code written against 0.6.x keeps working. Every model tier is
+        selected the same way now, so there is no per-model constructor to learn.
         """
-        provided = kwargs.pop("config", None)
-        cfg = provided or GuardConfig()
-        updates: dict[str, Any] = {
-            "active_model": "tiny",
-            "auto_download_model": auto_download,
-            "require_ml": require_ml,
-            "mode": "local",
-        }
-        if provided is None:
-            updates["pipeline"] = cfg.pipeline.model_copy(
-                update={"ml_gate": MlGateConfig(always_below_high=True, gray_low=0.0)}
-            )
-        cfg = cfg.model_copy(update=updates)
-        return cls(config=cfg, **kwargs)
+        import warnings
+
+        warnings.warn(
+            'Guard.with_tiny() is deprecated; use Guard(model="tiny") instead',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        cfg = kwargs.pop("config", None) or GuardConfig()
+        cfg = cfg.model_copy(update={"mode": "local"})
+        return cls(
+            config=cfg,
+            model="tiny",
+            auto_download_model=auto_download,
+            require_ml=require_ml,
+            **kwargs,
+        )
 
     def scan(self, text: str, source: Source | str = Source.USER) -> ScanResult:
         """Scan text and return findings with optional redaction."""
