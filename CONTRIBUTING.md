@@ -58,8 +58,12 @@ Do not start writing code before the issue is assigned. It is the only way we ca
 stop two people building the same thing, and we would rather tell you an issue is
 already spoken for than have you find out at review time.
 
-Keep one open PR at a time until your first one is merged. After that, take as
-many as you like.
+One issue at a time. When the PR for it is merged, we assign you the next one.
+
+That is not a judgement on how fast you work. An assigned issue looks taken to
+everyone else, so two parked issues means two people who could have picked
+something up and did not. Ask for the next one whenever you like and we will
+queue it against your name.
 
 If an issue is already assigned, leave it alone, even if it has been quiet for a
 while. Ask on the issue if you think something has stalled.
@@ -69,6 +73,39 @@ to collide with.
 
 If you go quiet for a couple of weeks we will ask whether you are still on it
 before freeing it up. We will always ask you first.
+
+## Mentored issues
+
+Issues labelled [`mentored`](https://github.com/UnplugAI/Unplug/labels/mentored)
+come with a maintainer attached. They are for people who want to learn the codebase,
+not just people who already know it.
+
+What that means in practice:
+
+- The issue tells you which file to open and which test should exist when you are done.
+- Ask anything on the issue thread. "I do not understand what taint propagation is
+  for" is a fine question. So is "I have been stuck on this import error for an hour".
+- We will review a half-finished PR if you want a check on direction. Open it as a
+  draft and say what you are unsure about.
+- Getting it wrong first try is expected. Nobody's first patch to a security scanner
+  is right.
+
+A mentored issue is still one issue. The one-at-a-time rule above applies here too,
+and we would rather you finish this one with help than juggle two.
+
+Two things we ask in return. Tell us when you get stuck rather than disappearing, and
+write the patch yourself. Reading an explanation is the point of the label. If a model
+writes it for you there is nothing left to learn, and [AI_POLICY.md](AI_POLICY.md)
+applies here the same as anywhere else.
+
+If you want a mentored issue but none are open, say so in
+[Discussions](https://github.com/UnplugAI/Unplug/discussions/categories/q-a) and we
+will label one.
+
+## Using AI to write your patch
+
+Allowed, and you have to disclose it. Undisclosed AI-generated PRs get closed.
+Full policy: [AI_POLICY.md](AI_POLICY.md).
 
 ## Branching and PRs
 
@@ -99,6 +136,16 @@ GitHub Actions runs on every PR to `dev` ([`.github/workflows/ci.yml`](.github/w
 
 ## Local checks (SDK)
 
+Install the hooks once and ruff stops being a CI failure:
+
+```bash
+uv tool install pre-commit
+pre-commit install
+```
+
+The hooks are the fast half of `make check`. They do not run mypy or the test suite,
+so still run `make check-ci` before you open the PR.
+
 ```bash
 cd sdk
 uv sync --all-extras --dev
@@ -108,6 +155,9 @@ make check
 
 # Exact CI parity before PR (includes exfil demo + security subset)
 make check-ci
+
+# Docs drift only: every `from unplug import ...` in the docs must resolve
+make check-docs
 
 # Coverage report and 80% minimum gate
 make test-cov
