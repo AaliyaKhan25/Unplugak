@@ -143,12 +143,15 @@ class ScanCache:
         self.set_chunk(chunk_storage_key(parts), result)
 
     @staticmethod
-    def should_advance_prefix(action: Action, *, advance_on_redact: bool) -> bool:
-        if action == Action.BLOCK:
-            return False
-        if action == Action.REDACT:
-            return advance_on_redact
-        return action in (Action.ALLOW, Action.REVIEW)
+    def should_advance_prefix(action: Action) -> bool:
+        """Return True only when *action* is ALLOW.
+
+        A safe-prefix entry represents a **verified-clean** prefix.  Only
+        ``Action.ALLOW`` satisfies that invariant; REDACT, REVIEW, BLOCK,
+        and ABSTAIN all indicate a non-clean result and must not create or
+        advance the safe prefix.
+        """
+        return action == Action.ALLOW
 
 
 def offset_findings(findings: list[Finding], offset: int) -> list[Finding]:
