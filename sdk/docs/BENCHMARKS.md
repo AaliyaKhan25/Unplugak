@@ -1,12 +1,12 @@
 # SDK benchmark results
 
-Date: 2026-06-15 (ML rows); regex-only neuralchemy refreshed **2026-07-20** (Phase C)
-Guard: `unplug-ai`, default scanners
-Model: `unplug-tiny-v1` (DeBERTa-v3-xsmall dual-head span model), `Guard(model="tiny")`
-Detection threshold: risk ≥ 0.5 counts as flagged (block or review)
-Methodology: **isolated single-turn sessions** — each sample is scanned in a fresh
-`ExecutionContext` (`scan_request(..., isolated=True)`), so multi-turn trajectory
-state never leaks between independent samples.
+- **Date:** 2026-06-15 (ML rows); regex-only neuralchemy refreshed **2026-07-20** (Phase C)
+- **Guard:** `unplug-ai`, default scanners
+- **Model:** `unplug-tiny-v1` (DeBERTa-v3-xsmall dual-head span model), `Guard(model="tiny")`
+- **Detection threshold:** risk ≥ 0.5 counts as flagged (block or review)
+- **Methodology:** isolated single-turn sessions. Each sample is scanned in a fresh
+  `ExecutionContext` (`scan_request(..., isolated=True)`), so multi-turn trajectory
+  state never leaks between independent samples.
 
 Phase C gap notes and download commands: [`EVAL_PHASE_C.md`](EVAL_PHASE_C.md).
 
@@ -73,9 +73,9 @@ PRs to `dev` run:
 
 | Workflow | Purpose |
 |----------|---------|
-| [`ci.yml`](../../.github/workflows/ci.yml) | Lint + mypy + pytest matrix (3.11–3.13) + attack-harness gate |
-| [`pr-scan.yml`](../../.github/workflows/pr-scan.yml) | Regex scan on changed agent/MCP config files |
-| [`reusable-agent-scan.yml`](../../.github/workflows/reusable-agent-scan.yml) | `workflow_call` entry for other repos |
+| [`ci.yml`](https://github.com/UnplugAI/Unplug/blob/dev/.github/workflows/ci.yml) | Lint + mypy + pytest matrix (3.11–3.13) + attack-harness gate |
+| [`pr-scan.yml`](https://github.com/UnplugAI/Unplug/blob/dev/.github/workflows/pr-scan.yml) | Regex scan on changed agent/MCP config files |
+| [`reusable-agent-scan.yml`](https://github.com/UnplugAI/Unplug/blob/dev/.github/workflows/reusable-agent-scan.yml) | `workflow_call` entry for other repos |
 
 The attack-harness gate (`benchmarks/attacks/ci_gate.py`) enforces per-category recall
 floors on the committed garak corpus and a benign false-positive ceiling.

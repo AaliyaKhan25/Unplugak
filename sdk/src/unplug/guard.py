@@ -441,6 +441,7 @@ class Guard:
             scan_every_chars=scan_every_chars,
             overlap_chars=self._config.cache.prefix_overlap_chars,
             document_id=document_id,
+            allow_unsafe_overlap=self._config.cache.allow_unsafe_overlap,
         )
 
     def _build_scan_request(
@@ -555,7 +556,6 @@ class Guard:
             str(ml_gate.always_below_high),
             str(ml_gate.gray_low),
             str(self._config.cache.prefix_overlap_chars),
-            str(self._config.cache.advance_prefix_on_redact),
             ";".join(scanner_cfg_parts),
         ]
         return "|".join(parts)
@@ -607,10 +607,7 @@ class Guard:
                 context=ctx,
             )
 
-        if cache.should_advance_prefix(
-            result.action,
-            advance_on_redact=self._config.cache.advance_prefix_on_redact,
-        ):
+        if cache.should_advance_prefix(result.action):
             cache.set_safe_prefix(
                 parts,
                 SafePrefixState.from_text(request.text, len(request.text)),

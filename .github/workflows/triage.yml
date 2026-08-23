@@ -1,0 +1,29 @@
+name: Triage
+
+# Issue forms apply needs-triage themselves. Blank issues do not, and those are the
+# ones most likely to get lost. Anything a maintainer opens is triaged by definition.
+#
+# COLLABORATOR is deliberately not exempt. Contributors get write access here so they
+# can push branches, which is not the same as their issues arriving pre-triaged.
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    # Must be wrapped in ${{ }} and kept on one line. An `if` expression starting
+    # with `!` does not evaluate correctly in the bare or folded form; it silently
+    # comes out truthy, so every maintainer-filed issue got labelled anyway.
+    if: ${{ !contains(fromJSON('["OWNER","MEMBER"]'), github.event.issue.author_association) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add needs-triage
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue edit "${{ github.event.issue.number }}" \
+            --repo "${{ github.repository }}" --add-label needs-triage
