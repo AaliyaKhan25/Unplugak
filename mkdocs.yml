@@ -3,10 +3,10 @@ site_description: Agent runtime security for LLM applications.
 site_url: https://unplugai.github.io/Unplug/
 repo_url: https://github.com/UnplugAI/Unplug
 repo_name: UnplugAI/Unplug
-edit_uri: edit/dev/sdk/docs/
+edit_uri: edit/dev/docs/
 copyright: Apache 2.0
 
-docs_dir: sdk/docs
+docs_dir: docs
 
 theme:
   name: material
@@ -40,7 +40,14 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
-  - pymdownx.superfences
+  # custom_fences turns ```mermaid blocks into rendered diagrams. Material's
+  # bundle pulls mermaid@11 from unpkg at runtime, so diagrams need the network.
+  # Vendoring it is tracked separately.
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite

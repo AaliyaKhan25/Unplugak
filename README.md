@@ -32,8 +32,8 @@ uv sync && uv pip install -e ".[ml]"
 ## Quickstart
 
 App and agent code imports from the top-level package (`from unplug import Guard`).
-Server/MCP integrations use `unplug.api.*` for wire types and facades — see
-[`sdk/docs/PUBLIC_API.md`](sdk/docs/PUBLIC_API.md). Do not use `unplug.core.*`.
+Server/MCP integrations use `unplug.api.*` for wire types and facades. See
+[`docs/PUBLIC_API.md`](docs/PUBLIC_API.md). Do not use `unplug.core.*`.
 
 ```python
 from unplug import Guard, Source
@@ -74,12 +74,11 @@ Try it without installing anything: [live demo](https://huggingface.co/spaces/Un
 | ML span model `Guard(model="tiny")` | **Preview** ([unplug-tiny-v1](https://huggingface.co/Unplug-AI/unplug-tiny-v1)) |
 | Sliding-window long documents + streaming scan | **Included** |
 
-
-On the held-out `core/test` split of the neuralchemy prompt-injection set (942 rows), regex-only detection reaches **F1 0.52 / recall 0.35**, a fast first line and not sufficient alone. Adding the ML span model (`Guard(model="tiny")`) takes that to **F1 0.97 / recall 0.96**, and lifts recall on *indirect* injection from **0.05 to 0.91**. False positives on that split run at 5 of 390 benign rows, and 2 of 95 on a separate hand-written benign corpus. On broader public benign sets the model over-flags badly, up to 34% of a combined 3,227-prompt validation set, so tune the threshold for your own traffic rather than trusting the defaults. Full tables, methodology, and the axes where it fails: [`sdk/docs/BENCHMARKS.md`](sdk/docs/BENCHMARKS.md). Per-axis model metrics are on the [model card](https://huggingface.co/Unplug-AI/unplug-tiny-v1).
+On the held-out `core/test` split of the neuralchemy prompt-injection set (942 rows), regex-only detection reaches **F1 0.52 / recall 0.35**, a fast first line and not sufficient alone. Adding the ML span model (`Guard(model="tiny")`) takes that to **F1 0.97 / recall 0.96**, and lifts recall on *indirect* injection from **0.05 to 0.91**. False positives on that split run at 5 of 390 benign rows, and 2 of 95 on a separate hand-written benign corpus. On broader public benign sets the model over-flags badly, up to 34% of a combined 3,227-prompt validation set, so tune the threshold for your own traffic rather than trusting the defaults. Full tables, methodology, and the axes where it fails: [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md). Per-axis model metrics are on the [model card](https://huggingface.co/Unplug-AI/unplug-tiny-v1).
 
 **Language support.** Regex + normalization detection is tuned for English today.
 Ordinary non-English input (Cyrillic, CJK, etc.) is *not* treated as an evasion
-signal — only genuine zero-width/bidi control characters and mixed-script
+signal. Only genuine zero-width/bidi control characters and mixed-script
 homoglyph smuggling are flagged. Robust multi-language injection detection is
 tracked as a separate work item.
 
@@ -95,7 +94,7 @@ tracked as a separate work item.
 
 See [sdk/README.md](sdk/README.md) for config (`unplug.toml`), `unplug-audit`, and dev gates (`make check`, `make check-ci`).
 
-**New to Unplug?** [`sdk/docs/GETTING_STARTED.md`](sdk/docs/GETTING_STARTED.md) · **Agent hosts:** [`sdk/docs/AGENT_ACTIONS.md`](sdk/docs/AGENT_ACTIONS.md)
+**New to Unplug?** [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) · **Agent hosts:** [`docs/AGENT_ACTIONS.md`](docs/AGENT_ACTIONS.md)
 
 ## Development
 
@@ -124,7 +123,7 @@ your patch (allowed, disclose it).
 ## Related repos
 
 - [unplug-mcp](https://github.com/UnplugAI/unplug-mcp): MCP server for Claude Code / Cursor
-- [unplug-scan-action](https://github.com/UnplugAI/unplug-scan-action): GitHub Action / Marketplace — PR agent-file scan
+- [unplug-scan-action](https://github.com/UnplugAI/unplug-scan-action): GitHub Action / Marketplace, PR agent-file scan
 - [unplug-server](https://github.com/UnplugAI/unplug-server): self-hosted API (premium tiers, later)
 
 ## License
