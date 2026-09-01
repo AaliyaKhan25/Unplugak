@@ -26,7 +26,7 @@ jobs:
       MAINTAINERS: chiruu12
       NUDGE_DAYS: "21"
       FREE_DAYS: "7"
-      DRY_RUN: ${{ inputs.dry_run }}
+      DRY_RUN: "${{ inputs.dry_run == true && 'true' || 'false' }}"
     steps:
       - name: Nudge or free claimed issues
         shell: bash
