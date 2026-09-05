@@ -15,7 +15,7 @@ on:
         default: false
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.dry_run }}
   cancel-in-progress: true
 
 permissions:
