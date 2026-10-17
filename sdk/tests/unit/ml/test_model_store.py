@@ -558,6 +558,7 @@ def test_guard_exposes_truncated_checkpoint_error(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     pytest.importorskip("torch")
+    pytest.importorskip("transformers")
     monkeypatch.delenv("UNPLUG_MODEL_PATH", raising=False)
     ckpt = tmp_path / "truncated"
     _write_checkpoint(ckpt, config='{"model_type": "deberta-v2"')  # cut off mid-JSON
@@ -580,6 +581,7 @@ def test_guard_require_ml_truncated_checkpoint_carries_cause(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     pytest.importorskip("torch")
+    pytest.importorskip("transformers")
     monkeypatch.delenv("UNPLUG_MODEL_PATH", raising=False)
     ckpt = tmp_path / "truncated"
     _write_checkpoint(ckpt, config='{"model_type": "deberta-v2"')
